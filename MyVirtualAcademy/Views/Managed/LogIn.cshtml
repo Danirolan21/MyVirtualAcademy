@@ -1,0 +1,17 @@
+﻿@model Usuario
+
+<h1 class="font-monospace">Iniciar Sesion</h1>
+
+<form method="post">
+	<label class="form-label">Email: </label>
+	<input type="text" name="email" class="form-control" />
+	<label class="form-label">Contraseña: </label>
+	<input type="text" name="password" class="form-control" />
+	<button class="btn btn-success mt-2">
+		Iniciar Sesión
+	</button>
+</form>
+
+@if(Model != null){
+	<h2 style="color: chocolate">Te has registrado como @Model.Nombre @Model.Apellidos</h2>
+}
