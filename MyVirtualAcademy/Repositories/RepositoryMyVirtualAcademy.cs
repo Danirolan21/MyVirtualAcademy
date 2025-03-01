@@ -14,6 +14,7 @@ namespace MyVirtualAcademy.Repositories
             this.context = context;
         }
 
+        #region MANAGED METHODS
         private async Task<int> GetMaxIdUserAsync()
         {
             if (this.context.Usuarios.Count() == 0)
@@ -36,7 +37,8 @@ namespace MyVirtualAcademy.Repositories
             user.Apellidos = apellidos;
             user.Email = email;
             user.Salt = HelperCryptography.GenerateSalt();
-            user.Password = HelperCryptography.EncryptPassword(password, user.Salt);
+            user.Password_Hash = HelperCryptography.EncryptPassword(password, user.Salt);
+            user.Password = password;
             user.FechaRegistro = DateTime.Now;
             this.context.Usuarios.Add(user);
             await this.context.SaveChangesAsync();
@@ -57,7 +59,7 @@ namespace MyVirtualAcademy.Repositories
                 string salt = user.Salt;
                 byte[] temp =
                     HelperCryptography.EncryptPassword(password, salt);
-                byte[] passBytes = user.Password;
+                byte[] passBytes = user.Password_Hash;
                 bool response =
                     HelperCryptography.CompararArrays(temp, passBytes);
                 if (response == true)
@@ -70,5 +72,36 @@ namespace MyVirtualAcademy.Repositories
                 }
             }
         }
+
+        public async Task<string> GetUserRoleAsync(int idUsuario)
+        {
+            var consulta = from v in this.context.VistaUsuariosConRoles
+                           where v.IdUsuario == idUsuario
+                           select v.Rol;
+
+            return await consulta.FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateLastAccessAsync(int idUsuario)
+        {
+            Usuario user = await this.context.Usuarios.FindAsync(idUsuario);
+            if (user != null)
+            {
+                user.UltimoAcceso = DateTime.Now;
+                await this.context.SaveChangesAsync();
+            }
+        }
+        #endregion
+
+        #region AREA PERSONAL
+
+        public async Task<List<ViewAsignaturaUsuario>> GetAsignaturasByUserAsync(int idUsuario)
+        {
+            return await this.context.VistaAsignaturasUsuario
+                .Where(x => x.IdUsuario == idUsuario)
+                .ToListAsync();
+        }
+
+        #endregion
     }
 }

@@ -29,3 +29,101 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+nav ul, nav li {
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    list-style-type: none;
+    float: left;
+    z-index: 1;
+    position: relative;
+    margin-left: 30px;
+}
+
+nav ul li ul li {
+    font-size: 16px;
+    color: white;
+    font-family: 'FavoritMno', sans-serif;
+    margin-left: 0;
+    padding: 8px;
+    width: 215px;
+    border-bottom: solid 1px grey;
+    margin-top: -1px;
+}
+
+nav ul li ul {
+    display: none;
+    position: absolute;
+    padding-top: 15px;
+    background-color: black;
+    margin-left: -8px;
+}
+
+nav ul li:hover ul {
+    display: block;
+}
+
+nav ul a {
+    color: rgb(153, 153, 153);
+}
+
+nav ul a:hover {
+    color: #009933;
+}
+
+nav ul li ul a:hover {
+    color: rgb(104, 104, 104);
+}
+
+nav ul ul li:hover {
+    background-color: rgb(153, 153, 153);
+}
+
+a {
+    text-decoration: none;
+}
+
+#dashboard-page .welcome-section {
+    position: relative;
+    background-color: #343a40;
+    background: url("/assets/images/bg-masthead.webp") no-repeat center center;
+    background-size: cover;
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+    text-align: center;
+}
+
+#dashboard-page .welcome-section:before {
+    content: "";
+    position: absolute;
+    background-color: #1c375e88;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+}
+
+.welcome-heading {
+    font-size: 4.5rem;
+    font-weight: bold;
+    font-family: 'FavoritMno', sans-serif;
+    color: white;
+    margin-bottom: 20px;
+}
+
+a.fs-custom {
+    font-size: 16px;
+    color: white;
+    font-family: 'FavoritMno', sans-serif;
+}
+
+@font-face {
+    font-family: 'FavoritMno';
+    src: url("/fonts/FavoritMono-Regular.woff2") format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}

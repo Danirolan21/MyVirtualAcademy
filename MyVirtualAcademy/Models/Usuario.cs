@@ -15,10 +15,12 @@ namespace MyVirtualAcademy.Models
         public string Apellidos { get; set; }
         [Column("Email")]
         public string Email { get; set; }
-        [Column("Pass")]
-        public byte[] Password { get; set; }
+        [Column("Pass_Hash")]
+        public byte[] Password_Hash { get; set; }
         [Column("Salt")]
         public string Salt { get; set; }
+        [Column("Pass")]
+        public string Password { get; set; }
         [Column("Fecha_Registro")]
         public DateTime FechaRegistro { get; set; }
         [Column("Activo")]

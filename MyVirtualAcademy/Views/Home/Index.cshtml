@@ -1,8 +1,84 @@
 ﻿@{
+    string userRole =
+                    Context.Session.GetString("Rol");
+}
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0 0 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--gray);
+    }
+
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .activity-item {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-light);
+    }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+</style>
+
+<section id="dashboard-page">
+    <div class="welcome-section">
+        <h1 class="welcome-heading">WELCOME TO YOUR <br/> VIRTUAL CAMPUS</h1>
+        <p>Your learning journey continues here. Check your upcoming activities and recent updates.</p>
+    </div>
+
+    <div class="container dashboard-grid">
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Recent Activity</h2>
+            <ul class="activity-list">
+                <li class="activity-item">New content published in <strong>Web Development</strong></li>
+                <li class="activity-item">Your assignment in <strong>Database Design</strong> was graded</li>
+                <li class="activity-item">Upcoming exam in <strong>Introduction to Programming</strong> on Friday</li>
+                <li class="activity-item">New discussion in <strong>Advanced C#</strong> forum</li>
+            </ul>
+        </div>
+
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Calendar</h2>
+            <p>Your upcoming events will appear here</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Messages</h2>
+            <p>You have 2 unread messages</p>
+        </div>
+
+        <div class="dashboard-card">
+            <h2 class="dashboard-card-title">Quick Stats</h2>
+            <p>4 Active Courses</p>
+            <p>2 Upcoming Deadlines</p>
+            <p>1 Certificate Earned</p>
+        </div>
+    </div>
+</section>
