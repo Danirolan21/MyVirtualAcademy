@@ -1,0 +1,40 @@
+﻿@model Usuario
+
+@{
+    string? userRole = SessionHelper.GetUserRole(HttpContextAccessor.HttpContext);
+}
+
+<section id="dashboard-page">
+    <div class="profile-section">
+        <div class="profile-image-container">
+            <img src="@Model.FotoPerfil" class="rounded-circle" width="250" height="250" />
+            <a class="edit-profile-btn"
+               asp-controller="Managed"
+               asp-action="EditProfile">
+                Edit Profile
+            </a>
+        </div>
+        <h1 class="profile-heading">
+            @Model.Nombre @Model.Apellidos
+        </h1>
+        <h1 class="profile-heading">
+            @userRole
+        </h1>
+    </div>
+
+    <div class="container profile-info d-flex justify-content-between gap-1">
+        <div class="border-black w-50 ps-2">
+            <h1 class="mb-1 border-black">
+                Mis <span class="text-danger fst-italic">Cursos</span>
+            </h1>
+
+        </div>
+        <div class="border-black w-50 ps-2" style="margin-top: -125px">
+            <h1 class="mb-1 border-black">
+                Mas <span class="text-danger fst-italic">datos</span>
+            </h1>
+            <h2>Correo: </h2>
+            <p>@Model.Email</p>
+        </div>
+    </div>
+</section>

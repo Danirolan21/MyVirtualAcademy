@@ -24,6 +24,10 @@ namespace MyVirtualAcademy.Controllers
                 {
                     return RedirectToAction("Profesor");
                 }
+                else if (userRole == "Administrador")
+                {
+                    return RedirectToAction("Administrador");
+                }
                 else
                 {
                     return RedirectToAction("Estudiante");
@@ -35,9 +39,44 @@ namespace MyVirtualAcademy.Controllers
             }
         }
 
-        public IActionResult Profesor()
+        public async Task<IActionResult> Administrador()
         {
-            return View();
+            List<VistaCursosDetalles> cursos =
+                await this.repo.GetCursosDetallesAsync();
+            return View(cursos);
+        }
+        public async Task<IActionResult> DetallesCurso(int idCurso)
+        {
+            VistaCursosDetalles detallesCurso = await this.repo.GetDetallesCursoAsync(idCurso);
+            List<Asignatura> asignaturas = await this.repo.GetAsignaturasPorCursoAsync(idCurso);
+            List<Usuario> alumnos = await this.repo.GetAlumnosPorCursoAsync(idCurso);
+            return View(new ViewDetallesCursoModel
+            {
+                DetallesCurso = detallesCurso,
+                Asignaturas = asignaturas,
+                Alumnos = alumnos
+            });
+        }
+
+        public async Task<IActionResult> CrearCurso()
+        {
+            List<VistaUsuariosConRoles> profesores = await this.repo.GetProfesoresAsync();
+            ViewData["ESTADOS"] = new List<string> { "Borrador", "Activo", "Finalizado", "Archivado", "Suspendido" };
+            return View(profesores);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearCurso(string nombre, string? descripcion, int idProfesor, DateTime fechaInicio, DateTime fechaFin, string estado, IFormFile imagenPortada)
+        {
+            await this.repo.CreateCourseAsync(nombre, descripcion, idProfesor, fechaInicio, fechaFin, estado, imagenPortada.FileName);
+            return RedirectToAction("Administrador");
+        }
+
+        public async Task<IActionResult> Profesor()
+        {
+            int? userId = SessionHelper.GetUserId(HttpContext);
+            Curso curso = await this.repo.GetCursoByProfesorAsync(userId.Value);
+            return View(curso);
         }
 
         public async Task<IActionResult> Estudiante()

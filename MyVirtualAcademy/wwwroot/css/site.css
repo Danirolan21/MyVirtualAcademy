@@ -18,7 +18,8 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    background-color: rgb(243, 243, 243);
+    margin-bottom: 60px;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -30,6 +31,11 @@ body {
   text-align: start;
 }
 
+.navbar {
+    position: relative;
+    z-index: 1000;
+}
+
 nav ul, nav li {
     padding: 0;
     margin: 0;
@@ -38,7 +44,7 @@ nav ul, nav li {
 nav ul li {
     list-style-type: none;
     float: left;
-    z-index: 1;
+    z-index: 999;
     position: relative;
     margin-left: 30px;
 }
@@ -60,6 +66,7 @@ nav ul li ul {
     padding-top: 15px;
     background-color: black;
     margin-left: -8px;
+    z-index: 1000;
 }
 
 nav ul li:hover ul {
@@ -105,25 +112,87 @@ a {
     top: 0;
     left: 0;
     opacity: 0.5;
+    z-index: 1;
 }
 
 .welcome-heading {
+    position: relative;
     font-size: 4.5rem;
     font-weight: bold;
     font-family: 'FavoritMno', sans-serif;
     color: white;
     margin-bottom: 20px;
+    z-index: 2;
+}
+
+#dashboard-page .profile-section {
+    position: relative;
+    background-color: #343a40;
+    background: url("/assets/images/bg-masthead.webp") no-repeat center center;
+    background-size: cover;
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+    text-align: center;
+}
+
+#dashboard-page .profile-section:before {
+    content: "";
+    position: absolute;
+    background-color: #1c375e88;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+    z-index: 1;
+}
+
+.profile-image-container {
+    padding: 15px;
+    position: absolute;
+    top: calc(100% - (125px + 15px));
+    transform: translateX(-50%);
+    right: 60%;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-image-container a.edit-profile-btn {
+    margin-top: 15px;
+    color: black;
+    background-color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 24px;
+    font-family: 'FavoritMno', sans-serif;
+}
+
+.profile-heading {
+    position: relative;
+    z-index: 2;
+    width: calc(100% - (100% - 65%));
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'FavoritMno', sans-serif;
+    color: white;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: 2.5%;
+}
+
+.profile-info {
+    margin-top: calc(250px + 15px);
+    font-family: 'FavoritMno', sans-serif;
+}
+
+.profile-info h1 {
+    font-weight: bold;
+    font-family: 'Roboto Thin Italic', sans-serif;
 }
 
 a.fs-custom {
     font-size: 16px;
     color: white;
     font-family: 'FavoritMno', sans-serif;
-}
-
-@font-face {
-    font-family: 'FavoritMno';
-    src: url("/fonts/FavoritMono-Regular.woff2") format('woff2');
-    font-weight: normal;
-    font-style: normal;
 }

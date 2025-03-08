@@ -1,18 +1,19 @@
-﻿
-<h1 class="font-monospace">Registrarse</h1>
+﻿<div class="container mt-3">
+	<h1 class="font-monospace">Registrarse</h1>
 
-<form method="post">
-	<label class="form-label">Nombre: </label>
-	<input type="text" name="nombre" class="form-control" />
-	<label class="form-label">Apellidos: </label>
-	<input type="text" name="apellidos" class="form-control" />
-	<label class="form-label">Email: </label>
-	<input type="text" name="email" class="form-control" />
-	<label class="form-label">Contraseña: </label>
-	<input type="text" name="password" class="form-control" />
-	<button class="btn btn-success mt-2">
-		Registrarse
-	</button>
-</form>
+	<form method="post">
+		<label class="form-label">Nombre: </label>
+		<input type="text" name="nombre" class="form-control" />
+		<label class="form-label">Apellidos: </label>
+		<input type="text" name="apellidos" class="form-control" />
+		<label class="form-label">Email: </label>
+		<input type="text" name="email" class="form-control" />
+		<label class="form-label">Contraseña: </label>
+		<input type="text" name="password" class="form-control" />
+		<button class="btn btn-success mt-2">
+			Registrarse
+		</button>
+	</form>
 
-<h2 style="color: chocolate">@ViewData["MENSAJE"]</h2>
+	<h2 style="color: chocolate">@ViewData["MENSAJE"]</h2>
+</div>

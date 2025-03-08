@@ -1,0 +1,90 @@
+﻿@model List<VistaUsuariosConRoles>
+
+@{
+    List<string> estados = ViewData["ESTADOS"] as List<string>;
+}
+
+<main class="container mt-3">
+    <div class="course-layout">
+        <div class="course-main" style="grid-column: span 2;">
+            <div class="course-header">
+                <h1>Crear Nuevo Curso</h1>
+                <p class="text-muted">Complete el formulario para crear un nuevo curso en la plataforma</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="content-section">
+                    <div class="mb-3">
+                        <label for="Nombre" class="form-label">Nombre del curso <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="Nombre" name="Nombre" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="Descripcion" name="Descripcion" rows="4"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="IdProfesor" class="form-label">Profesor <span class="text-danger">*</span></label>
+                        <select class="form-control" id="IdProfesor" name="IdProfesor" required>
+                            <option value="">Seleccione un profesor</option>
+                            <!-- Aquí se pueden cargar dinámicamente los profesores desde el controlador -->
+                            @foreach(VistaUsuariosConRoles profesor in Model){
+                                <option value="@profesor.IdUsuario">@profesor.Nombre @profesor.Apellidos</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="FechaInicio" class="form-label">Fecha de inicio <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="FechaInicio" name="FechaInicio" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="FechaFin" class="form-label">Fecha de fin <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="FechaFin" name="FechaFin" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Estado" class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select class="form-control" id="Estado" name="Estado" required>
+                            <option value="">Seleccione un estado</option>
+                            @foreach (string estado in estados)
+                            {
+                                <option value="@estado">@estado</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ImagenPortada" class="form-label">Imagen de portada</label>
+                        <input type="file" class="form-control" id="ImagenPortada" name="ImagenPortada" accept="image/*">
+                        <small class="text-muted">Sube una imagen atractiva para la portada del curso</small>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a class="btn btn-outline"
+                        asp-controller="PersonalArea"
+                        asp-action="Administrador">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                            </svg>
+                            Volver
+                        </a>
+
+                        <button class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Crear Curso
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>

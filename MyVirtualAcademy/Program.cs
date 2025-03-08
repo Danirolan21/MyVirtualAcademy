@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyVirtualAcademy.Data;
+using MyVirtualAcademy.Helper;
 using MyVirtualAcademy.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
+
+builder.Services.AddSingleton<HelperPathProvider>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<RepositoryMyVirtualAcademy>();
 builder.Services.AddDbContext<MyVirtualAcademyContext>(options

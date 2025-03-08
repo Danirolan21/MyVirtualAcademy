@@ -1,4 +1,5 @@
-﻿
+﻿@model Curso
+
 <style>
     :root {
         --primary: #3498db;
@@ -19,13 +20,6 @@
         padding: 0;
         background-color: #f9f9f9;
         color: #333;
-    }
-
-    /* Layout */
-    .container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0 15px;
     }
 
     /* Header */
@@ -297,48 +291,17 @@
     </div>
 
     <div class="courses-grid">
-        <div class="course-card">
-            <div class="course-image">
-                <span class="course-status status-active">Active</span>
+        @if(Model != null) {
+            <div class="course-card">
+                <div class="course-image">
+                    <span class="course-status status-active">@Model.Estado</span>
+                </div>
+                <div class="course-details">
+                    <h3 class="course-title">@Model.Nombre</h3>
+                    <p class="course-description">@Model.Descripcion</p>
+                    <a href="#" class="course-action">Ir al curso</a>
+                </div>
             </div>
-            <div class="course-details">
-                <h3 class="course-title">Introduction to Programming</h3>
-                <p class="course-description">Learn the fundamentals of programming with Python and basic algorithms.</p>
-                <a href="#" class="course-action">Go to the course</a>
-            </div>
-        </div>
-
-        <div class="course-card">
-            <div class="course-image">
-                <span class="course-status status-draft">Draft</span>
-            </div>
-            <div class="course-details">
-                <h3 class="course-title">Web Development</h3>
-                <p class="course-description">Master HTML, CSS and JavaScript to create responsive websites.</p>
-                <a href="#" class="course-action">Go to the course</a>
-            </div>
-        </div>
-
-        <div class="course-card">
-            <div class="course-image">
-                <span class="course-status status-complete">Completed</span>
-            </div>
-            <div class="course-details">
-                <h3 class="course-title">Database Design</h3>
-                <p class="course-description">Learn principles of relational databases and SQL.</p>
-                <a href="#" class="course-action">View certificate</a>
-            </div>
-        </div>
-
-        <div class="course-card">
-            <div class="course-image">
-                <span class="course-status status-active">Active</span>
-            </div>
-            <div class="course-details">
-                <h3 class="course-title">Advanced C#</h3>
-                <p class="course-description">Take your C# skills to the next level with advanced topics.</p>
-                <a href="#" class="course-action">Go to the course</a>
-            </div>
-        </div>
+        }
     </div>
 </section>

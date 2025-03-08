@@ -8,10 +8,12 @@ namespace MyVirtualAcademy.Controllers
     public class ManagedController : Controller
     {
         private RepositoryMyVirtualAcademy repo;
+        private HelperPathProvider helperPath;
 
-        public ManagedController(RepositoryMyVirtualAcademy repo)
+        public ManagedController(RepositoryMyVirtualAcademy repo, HelperPathProvider helperPath)
         {
             this.repo = repo;
+            this.helperPath = helperPath;
         }
 
         public IActionResult Register()
@@ -46,13 +48,49 @@ namespace MyVirtualAcademy.Controllers
                 HttpContext.Session.SetString("Nombre", user.Nombre + " " + user.Apellidos.Split(' ')[0]);
                 HttpContext.Session.SetString("Rol", userRole);
 
-                return RedirectToAction("Estudiante", "PersonalArea");
+                return RedirectToAction("Index", "PersonalArea");
             }
             else
             {
                 ViewData["MENSAJE"] = "Las credenciales son erroneas!!!";
                 return View();
             }
+        }
+
+        public async Task<IActionResult> Perfil()
+        {
+            int? idUsuario = SessionHelper.GetUserId(HttpContext);
+            Usuario usuario =
+                await this.repo.FindUserAsync(idUsuario.Value);
+            usuario.FotoPerfil = this.helperPath.MapUrlPath(usuario.FotoPerfil ?? "ProfileImage_Default.jpg", Folders.images);
+            return View(usuario);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Perfil(int idUsuario, string nombre, string apellidos, IFormFile fotoPerfil, string telefono)
+        {
+            string? FileName = null;
+            if (fotoPerfil != null)
+            {
+                string extension = Path.GetExtension(fotoPerfil.FileName);
+                string[] permittedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+                if (!permittedExtensions.Contains(extension.ToLower()))
+                {
+                    ViewData["MENSAJE"] = "Formato de imagen no permitido.";
+                    return RedirectToAction("Perfil");
+                }
+
+                FileName = "User" + idUsuario + extension;
+                string path = this.helperPath.MapPath(FileName, Folders.users);
+
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await fotoPerfil.CopyToAsync(stream);
+                }
+            }
+
+            Usuario usuario = await this.repo.UpdateUserAsync(idUsuario, nombre, apellidos, FileName, telefono);
+            return View(usuario);
         }
 
         public async Task<IActionResult> LogOut()

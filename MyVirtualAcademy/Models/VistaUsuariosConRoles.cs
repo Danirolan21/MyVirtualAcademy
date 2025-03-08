@@ -7,7 +7,15 @@ namespace MyVirtualAcademy.Models
     {
         [Column("ID_Usuario")]
         public int IdUsuario { get; set; }
+        [Column("Nombre")]
+        public string Nombre { get; set; }
+        [Column("Apellidos")]
+        public string Apellidos { get; set; }
+        [Column("Email")]
+        public string Email { get; set; }
         [Column("Rol")]
         public string Rol { get; set; }
+        [Column("Activo")]
+        public bool Activo { get; set; }
     }
 }
