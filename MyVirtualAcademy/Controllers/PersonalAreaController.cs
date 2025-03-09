@@ -70,6 +70,11 @@ namespace MyVirtualAcademy.Controllers
             return View(model);
         }
 
+        public IActionResult AñadirTema()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> CrearCurso()
         {
             List<VistaUsuariosConRoles> profesores = await this.repo.GetProfesoresAsync();

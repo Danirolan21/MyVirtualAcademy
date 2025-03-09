@@ -373,30 +373,103 @@
             backdrop-filter: blur(5px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
+        .add-button-gradient {
+            width: 100%;
+            padding: 12px 16px;
+            background-image: linear-gradient(to right, #4361ee, #3f37c9);
+            color: white;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        
+        .add-button-gradient:hover {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .add-button-card {
+            width: 100%;
+            padding: 16px;
+            background-color: white;
+            border: 2px dashed #4361ee;
+            border-radius: var(--border-radius);
+            color: #4361ee;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        
+        .add-button-card:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .add-content-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+        
+        .add-content-text {
+            color: var(--gray-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 }
 
 <div class="main-container">
     <!-- Sidebar izquierdo (menú) -->
     <div class="left-sidebar">
-        @foreach(TemaViewModel tema in Model.Temas){
-            <div class="theme-header">
-                <span>@tema.NombreTema</span>
-                <div class="toggle-icon">-</div>
-            </div>
-            @if(tema.Contenidos != null){
-                <div class="theme-content open">
-                    <div class="theme-item active">
-                        <img src="~/assets/iconos/table-cells-large-solid.svg" class="me-2" width="15" height="15" /> Todo
-                    </div>
-                    @foreach (ContenidoViewModel contenido in @tema.Contenidos)
-                    {
-                        <div class="theme-item">
-                            <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" /> @contenido.TituloContenido
-                        </div>
-                    }
+        @if(Model.Temas != null && Model.Temas.Any()){
+            @foreach(TemaViewModel tema in Model.Temas){
+                <div class="theme-header">
+                    <span>@tema.NombreTema</span>
+                    <div class="toggle-icon">-</div>
                 </div>
+                @if(tema.Contenidos != null){
+                    <div class="theme-content open">
+                        <div class="theme-item active">
+                            <img src="~/assets/iconos/table-cells-large-solid.svg" class="me-2" width="15" height="15" /> Todo
+                        </div>
+                        @foreach (ContenidoViewModel contenido in @tema.Contenidos)
+                        {
+                            <div class="theme-item">
+                                <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" /> @contenido.TituloContenido
+                            </div>
+                        }
+                    </div>
+                }
             }
+        }
+        else{
+            <div class="add-content-container bg-transparent">
+                <a class="add-button-gradient" asp-controller="PersonalArea" asp-action="AñadirTema">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Añadir nuevo tema</span>
+                </a>
+            </div>
         }
     </div>
 
@@ -421,21 +494,44 @@
                     @tema.NombreTema
                 </div>
 
-                @foreach(ContenidoViewModel contenido in tema.Contenidos){
-                    <div class="content-item">
-                        <div class="content-icon theory-icon">
-                            <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                @if(tema.Contenidos != null && tema.Contenidos.Any()){
+                    @foreach(ContenidoViewModel contenido in tema.Contenidos){
+                        <div class="content-item">
+                            <div class="content-icon theory-icon">
+                                <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                            </div>
+                            <div class="content-info">
+                                <div class="content-title">@contenido.TituloContenido</div>
+                                <div class="content-description">@contenido.DescripcionContenido</div>
+                            </div>
+                            <button class="status-button status-done">
+                                <img src="~/assets/iconos/check-solid.svg" class="me-2" width="15" height="15" /> @contenido.Contenido_Completado
+                            </button>
                         </div>
-                        <div class="content-info">
-                            <div class="content-title">@contenido.TituloContenido</div>
-                            <div class="content-description">@contenido.DescripcionContenido</div>
-                        </div>
-                        <button class="status-button status-done">
-                            <img src="~/assets/iconos/check-solid.svg" class="me-2" width="15" height="15" /> @contenido.Contenido_Completado
+                    }
+                }
+                else
+                {
+                    <div class="add-content-container">
+                        <p class="add-content-text">Aún no hay contenidos para este tema</p>
+                        <button class="add-button-card">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Añadir nuevo contenido</span>
                         </button>
                     </div>
                 }
             }
+            <div class="add-content-container">
+                <p class="add-content-text">Aún no hay contenidos para este tema</p>
+                <button class="add-button-card">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Añadir nuevo contenido</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
