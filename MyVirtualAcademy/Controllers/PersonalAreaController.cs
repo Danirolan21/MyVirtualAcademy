@@ -58,6 +58,18 @@ namespace MyVirtualAcademy.Controllers
             });
         }
 
+        public async Task<IActionResult> DetallesAsignatura(int idAsignatura)
+        {
+            AsignaturaDetalleViewModel model = await this.repo.GetDetallesAsignatura(idAsignatura);
+
+            if (model == null)
+            {
+                return null;
+            }
+
+            return View(model);
+        }
+
         public async Task<IActionResult> CrearCurso()
         {
             List<VistaUsuariosConRoles> profesores = await this.repo.GetProfesoresAsync();

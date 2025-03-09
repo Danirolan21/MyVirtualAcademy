@@ -1,0 +1,482 @@
+﻿@model AsignaturaDetalleViewModel
+
+@section Styles {
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            background-color: white;
+            margin: 20px auto;
+            max-width: 1400px;
+        }
+
+        .left-sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            height: calc(100vh - 40px);
+            overflow-y: auto;
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+
+        .theme-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+            .theme-header:hover {
+                background-color: #f5f7fb;
+            }
+
+            .theme-header .toggle-icon {
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background-color: #f0f2f5;
+                color: var(--primary-color);
+                font-size: 14px;
+            }
+
+        .theme-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+            background-color: #fafafa;
+        }
+
+            .theme-content.open {
+                max-height: 500px;
+            }
+
+        .theme-item {
+            padding: 12px 20px 12px 40px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--gray-color);
+            transition: var(--transition);
+            position: relative;
+            font-size: 14px;
+        }
+
+            .theme-item:hover {
+                background-color: #f5f7fb;
+                color: var(--primary-color);
+            }
+
+            .theme-item.active {
+                background-color: #e8f0fe;
+                color: var(--primary-color);
+                font-weight: 500;
+            }
+
+                .theme-item.active::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    height: 100%;
+                    width: 4px;
+                    background-color: var(--primary-color);
+                }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            height: calc(100vh - 40px);
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        .subject-header {
+            margin-bottom: 30px;
+            position: relative;
+            background: linear-gradient(135deg, #e0f7fa, #bbdefb);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+            .subject-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: url('/api/placeholder/400/200') center/cover no-repeat;
+                opacity: 0.1;
+                border-radius: var(--border-radius);
+            }
+
+        .subject-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        .teachers-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            width: fit-content;
+            font-size: 14px;
+        }
+
+        .teacher-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .teacher-name {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .theme-content-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-top: 20px;
+            transition: var(--transition);
+        }
+
+            .theme-content-container:hover {
+                transform: translateY(-5px);
+            }
+
+        .theme-title {
+            font-size: 1.5rem;
+            padding: 20px 25px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .content-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
+        }
+
+            .content-item:hover {
+                background-color: #f9f9f9;
+            }
+
+            .content-item:last-child {
+                border-bottom: none;
+            }
+
+        .content-icon {
+            margin-right: 20px;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+        }
+
+        .theory-icon {
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+        }
+
+        .practice-icon {
+            background-color: #fdf2f8;
+            color: var(--accent-color);
+        }
+
+        .quiz-icon {
+            background-color: #ecfdf5;
+            color: #10b981;
+        }
+
+        .content-info {
+            flex: 1;
+        }
+
+        .content-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--dark-color);
+        }
+
+        .content-description {
+            font-size: 14px;
+            color: var(--gray-color);
+            max-width: 80%;
+        }
+
+        .status-button {
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-done {
+            background-color: #10b981;
+        }
+
+            .status-done:hover {
+                background-color: #059669;
+            }
+
+        .status-not-done {
+            background-color: #6b7280;
+        }
+
+            .status-not-done:hover {
+                background-color: #4b5563;
+            }
+
+        /* Pattern decorativo para el header */
+        .pattern-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background-image: radial-gradient(circle at 15% 50%, rgba(255,255,255,0.2) 6px, transparent 6px), radial-gradient(circle at 35% 70%, rgba(255,255,255,0.2) 10px, transparent 10px), radial-gradient(circle at 55% 30%, rgba(255,255,255,0.2) 8px, transparent 8px), radial-gradient(circle at 75% 60%, rgba(255,255,255,0.2) 12px, transparent 12px);
+            background-size: 150px 150px;
+            z-index: 0;
+        }
+
+        /* Estilos para la barra de desplazamiento */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a1a1a1;
+            }
+
+        /* Estilo para el scroll suave */
+        * {
+            scroll-behavior: smooth;
+        }
+
+        /* Animaciones */
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-content > * {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Pills de información en el header */
+        .subject-info-pills {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .info-pill {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+}
+
+<div class="main-container">
+    <!-- Sidebar izquierdo (menú) -->
+    <div class="left-sidebar">
+        @foreach(TemaViewModel tema in Model.Temas){
+            <div class="theme-header">
+                <span>@tema.NombreTema</span>
+                <div class="toggle-icon">-</div>
+            </div>
+            @if(tema.Contenidos != null){
+                <div class="theme-content open">
+                    <div class="theme-item active">
+                        <img src="~/assets/iconos/table-cells-large-solid.svg" class="me-2" width="15" height="15" /> Todo
+                    </div>
+                    @foreach (ContenidoViewModel contenido in @tema.Contenidos)
+                    {
+                        <div class="theme-item">
+                            <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" /> @contenido.TituloContenido
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="subject-header">
+            <div class="pattern-bg"></div>
+            <h1 class="subject-title">@Model.NombreAsignatura</h1>
+            <div class="teachers-container">
+                @foreach(ProfesorViewModel profesor in Model.Profesores){
+                    <div class="teacher-info">
+                        <div class="teacher-avatar"><img src="@profesor.FotoPerfil" /></div>
+                        <span class="teacher-name">@profesor.NombreProfesor @profesor.ApellidosProfesor</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="theme-content-container">
+            @foreach(TemaViewModel tema in Model.Temas){
+                <div class="theme-title">
+                    @tema.NombreTema
+                </div>
+
+                @foreach(ContenidoViewModel contenido in tema.Contenidos){
+                    <div class="content-item">
+                        <div class="content-icon theory-icon">
+                            <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                        </div>
+                        <div class="content-info">
+                            <div class="content-title">@contenido.TituloContenido</div>
+                            <div class="content-description">@contenido.DescripcionContenido</div>
+                        </div>
+                        <button class="status-button status-done">
+                            <img src="~/assets/iconos/check-solid.svg" class="me-2" width="15" height="15" /> @contenido.Contenido_Completado
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Manejo de la expansión/contracción de los temas
+        document.querySelectorAll('.theme-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const icon = this.querySelector('.toggle-icon');
+
+                // Cerrar todos los temas abiertos
+                document.querySelectorAll('.theme-content').forEach(item => {
+                    if (item !== content) {
+                        item.classList.remove('open');
+                        const otherHeader = item.previousElementSibling;
+                        otherHeader.querySelector('.toggle-icon').textContent = '+';
+                    }
+                });
+
+                // Alternar el estado del tema clickeado
+                content.classList.toggle('open');
+                icon.textContent = content.classList.contains('open') ? '-' : '+';
+            });
+        });
+
+        // Manejo de la selección de elementos del tema
+        document.querySelectorAll('.theme-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Desactivar todos los elementos activos
+                document.querySelectorAll('.theme-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+
+                // Activar el elemento clickeado
+                this.classList.add('active');
+
+                // Aquí se cargaría el contenido dinámicamente
+                console.log(`Seleccionado: ${this.textContent.trim()}`);
+            });
+        });
+    </script>
+}

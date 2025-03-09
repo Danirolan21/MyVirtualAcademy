@@ -150,6 +150,63 @@ namespace MyVirtualAcademy.Repositories
                 .ToListAsync();
         }
 
+        public async Task<AsignaturaDetalleViewModel> GetDetallesAsignatura(int idAsignatura)
+        {
+            var datos = await this.context.VistaDetallesAsignatura
+                .Where(a => a.IdAsignatura == idAsignatura)
+                .ToListAsync();
+
+            if (!datos.Any())
+                return null; //Si no hay datos significa que no hay profesores que imparta la asignatura
+
+            var asignaturaDetalle = new AsignaturaDetalleViewModel();
+
+            var primerRegistro = datos.First();
+            asignaturaDetalle.IdAsignatura = primerRegistro.IdAsignatura;
+            asignaturaDetalle.NombreAsignatura = primerRegistro.NombreAsignatura;
+
+            asignaturaDetalle.Profesores = datos
+                .GroupBy(p => p.IdProfesor)
+                .Select(g => new ProfesorViewModel
+                {
+                    IdProfesor = g.Key,
+                    NombreProfesor = g.First().NombreProfesor,
+                    ApellidosProfesor = g.First().ApellidosProfesor,
+                    FotoPerfil = g.First().FotoPerfil
+                })
+                .ToList();
+
+            List<TemaViewModel> temas = datos
+                .Where(t => t.IdTema.HasValue)
+                .GroupBy(t => new { t.IdTema, t.NombreTema, t.OrdenTema })
+                .Select(tg => new TemaViewModel
+                {
+                    IdTema = tg.Key.IdTema,
+                    NombreTema = tg.Key.NombreTema,
+                    OrdenTema = tg.Key.OrdenTema,
+
+                    Contenidos = tg
+                        .Where(c => c.IDContenido.HasValue)
+                        .Select(c => new ContenidoViewModel
+                        {
+                            IdContenido = c.IDContenido,
+                            TituloContenido = c.TituloContenido,
+                            DescripcionContenido = c.DescripcionContenido,
+                            TipoContenido = c.TipoContenido,
+                            Orden_Contenido = c.OrdenContenido,
+                            Contenido_Completado = c.ContenidoCompletado
+                        })
+                        .OrderBy(c => c.Orden_Contenido)
+                        .ToList()
+                })
+                .OrderBy(t => t.OrdenTema)
+                .ToList();
+
+            asignaturaDetalle.Temas = temas;
+
+            return asignaturaDetalle;
+        }
+
         public async Task CreateCourseAsync(string nombre, string? descripcion
             , int idProfesor, DateTime fechaInicio, DateTime FechaFin, string Estado, string? imagenPortada)
         {
