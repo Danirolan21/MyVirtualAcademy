@@ -12,6 +12,8 @@ namespace MyVirtualAcademy.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Curso> Cursos { get; set; }
         public DbSet<Asignatura> Asignaturas { get; set; }
+        public DbSet<Tema> Temas { get; set; }
+        public DbSet<Contenido> Contenidos { get; set; }
         public DbSet<Inscripcion> Inscripciones { get; set; }
         public DbSet<VistaUsuariosConRoles> VistaUsuariosConRoles { get; set; }
         public DbSet<ViewAsignaturaUsuario> VistaAsignaturasUsuario { get; set; }

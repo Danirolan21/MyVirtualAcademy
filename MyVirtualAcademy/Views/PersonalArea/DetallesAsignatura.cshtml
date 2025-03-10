@@ -435,9 +435,88 @@
             text-align: center;
         }
     </style>
+    <style>
+    /* Estilos Modal SweetAlert2 */
+    .my-swal .swal2-title {
+        color: #4361ee;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .my-swal .swal2-html-container {
+        text-align: left;
+    }
+
+    .my-swal .swal2-popup {
+        padding: 2em;
+        border-radius: 15px;
+        background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+        border-top: 3px solid #4361ee;
+    }
+
+    .my-swal .swal2-confirm {
+        background-image: linear-gradient(to right, #4361ee, #3a57e8);
+        border-radius: 30px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .my-swal .swal2-confirm:hover {
+        background-image: linear-gradient(to right, #3a57e8, #324bd9);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+
+    .my-swal .swal2-cancel {
+        border-radius: 30px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .my-swal .swal2-cancel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .my-swal input, 
+    .my-swal select, 
+    .my-swal textarea {
+        border-radius: 10px;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+    }
+
+    .my-swal input:focus, 
+    .my-swal select:focus, 
+    .my-swal textarea:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    /* Animación para el modal */
+    .my-swal .swal2-show {
+        animation: modal-show 0.5s;
+    }
+
+    @@keyframes modal-show {
+        0% {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
 }
 
 <div class="main-container">
+    <input type="hidden" id="idAsignatura" value="@Model.IdAsignatura" />
     <!-- Sidebar izquierdo (menú) -->
     <div class="left-sidebar">
         @if(Model.Temas != null && Model.Temas.Any()){
@@ -460,15 +539,24 @@
                     </div>
                 }
             }
+
+            <div class="p-3 mt-3">
+                <button class="add-button-gradient btn-sm">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Añadir nuevo tema</span>
+                </button>
+            </div>
         }
         else{
             <div class="add-content-container bg-transparent">
-                <a class="add-button-gradient" asp-controller="PersonalArea" asp-action="AñadirTema">
+                <button class="add-button-gradient">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     <span>Añadir nuevo tema</span>
-                </a>
+                </button>
             </div>
         }
     </div>
@@ -523,21 +611,101 @@
                     </div>
                 }
             }
-            <div class="add-content-container">
-                <p class="add-content-text">Aún no hay contenidos para este tema</p>
-                <button class="add-button-card">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <span>Añadir nuevo contenido</span>
-                </button>
-            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
+        function mostrarFormularioTema(idAsignatura, nombreAsignatura) {
+            Swal.fire({
+                title: `<span class="text-primary">Añadir nuevo tema</span>`,
+                html: `
+                    <form id="formNuevoTema" action="/PersonalArea/AñadirTema" method="POST">
+                        <div class="text-left mb-4">
+                            <p class="text-muted mb-3">Estás añadiendo un tema a la asignatura <strong>${nombreAsignatura}</strong></p>
+
+                            <div class="mb-3">
+                                <label for="Nombre" class="form-label fw-bold">Nombre del tema <span class="text-danger">*</span></label>
+                                <input type="text" id="Nombre" name="Nombre" class="form-control" placeholder="Ej: Introducción a la programación" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Orden" class="form-label fw-bold">Orden <span class="text-danger">*</span></label>
+                                <input type="number" id="Orden" name="Orden" class="form-control" min="1" value="1" required>
+                                <small class="text-muted">Posición en la que aparecerá este tema en la lista</small>
+                            </div>
+
+                            <input type="hidden" id="IdAsignatura" name="IdAsignatura" value="${idAsignatura}">
+                            <input type="hidden" id="IdTema" name="IdTema" value="0">
+                        </div>
+                    </form>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar tema',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4361ee',
+                cancelButtonColor: '#6c757d',
+                customClass: {
+                    container: 'my-swal',
+                    popup: 'rounded-3 shadow-lg',
+                    header: 'border-bottom pb-2',
+                    closeButton: 'btn btn-sm btn-outline-secondary',
+                    content: 'p-4',
+                    confirmButton: 'btn btn-lg px-4',
+                    cancelButton: 'btn btn-lg px-4'
+                },
+                buttonsStyling: true,
+                focusConfirm: false,
+                showLoaderOnConfirm: true,
+                backdrop: `rgba(0,0,123,0.4)`,
+                preConfirm: () => {
+                    const nombre = document.getElementById('Nombre').value;
+                    const orden = document.getElementById('Orden').value;
+
+                    if (!nombre) {
+                        Swal.showValidationMessage('El nombre del tema es obligatorio');
+                        return false;
+                    }
+
+                    if (!orden || orden < 1) {
+                        Swal.showValidationMessage('El orden debe ser un número mayor a 0');
+                        return false;
+                    }
+
+                    // Submit the form
+                    document.getElementById('formNuevoTema').submit();
+                    return true;
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+
+        // Actualizar los event listeners para los botones de añadir tema
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el ID de la asignatura y su nombre desde la página
+            const idAsignatura = document.getElementById('idAsignatura')?.value;
+            const nombreAsignatura = document.querySelector('.subject-title')?.textContent;
+
+            // Si no encontramos los valores en los elementos DOM, intentamos obtenerlos del modelo
+            const idAsignaturaFinal = idAsignatura || (typeof Model !== 'undefined' ? Model.IdAsignatura : '');
+            const nombreAsignaturaFinal = nombreAsignatura || (typeof Model !== 'undefined' ? Model.NombreAsignatura : 'esta asignatura');
+
+            if (!idAsignaturaFinal) {
+                console.error('No se pudo obtener el ID de la asignatura');
+                return;
+            }
+
+            // Asignar el evento solo a los botones con clase add-button-gradient
+            const botonesAñadirTema = document.querySelectorAll('.add-button-gradient');
+            botonesAñadirTema.forEach(boton => {
+                boton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    mostrarFormularioTema(idAsignaturaFinal, nombreAsignaturaFinal);
+                });
+            });
+        });
+
         // Manejo de la expansión/contracción de los temas
         document.querySelectorAll('.theme-header').forEach(header => {
             header.addEventListener('click', function() {

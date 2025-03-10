@@ -239,6 +239,32 @@ namespace MyVirtualAcademy.Repositories
             }
         }
 
+
+
+        private async Task<int> GetMaxIdTemaAsync()
+        {
+            if (this.context.Temas.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.Temas.MaxAsync
+                    (x => x.IdTema) + 1;
+            }
+        }
+
+        public async Task CreateTemaAsync(int idAsignatura, string nombre, int Orden)
+        {
+            Tema tema = new Tema();
+            tema.IdTema = await this.GetMaxIdTemaAsync();
+            tema.IdAsignatura = idAsignatura;
+            tema.Nombre = nombre;
+            tema.Orden = Orden;
+            await this.context.Temas.AddAsync(tema);
+            await this.context.SaveChangesAsync();
+        }
+
         public async Task<Curso> GetCursoByProfesorAsync(int idProfesor)
         {
             return await this.context.Cursos

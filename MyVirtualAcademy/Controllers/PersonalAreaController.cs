@@ -70,9 +70,11 @@ namespace MyVirtualAcademy.Controllers
             return View(model);
         }
 
-        public IActionResult AñadirTema()
+        [HttpPost]
+        public async Task<IActionResult> AñadirTema(Tema tema)
         {
-            return View();
+            await this.repo.CreateTemaAsync(tema.IdAsignatura, tema.Nombre, tema.Orden);
+            return RedirectToAction("DetallesAsignatura", new { idAsignatura = tema.IdAsignatura });
         }
 
         public async Task<IActionResult> CrearCurso()
