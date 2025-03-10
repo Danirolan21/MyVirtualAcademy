@@ -519,6 +519,13 @@
     <input type="hidden" id="idAsignatura" value="@Model.IdAsignatura" />
     <!-- Sidebar izquierdo (menú) -->
     <div class="left-sidebar">
+        @if (ViewData["IdCurso"] != null)
+        {
+            <a asp-controller="PersonalArea" asp-action="DetallesCurso" asp-route-idCurso="@ViewData["IDCURSO"]"
+               class="d-inline-flex align-items-center m-4 mb-4 text-decoration-none text-dark fw-bold fw-500">
+                <img src="~/assets/iconos/back.png" width="30" height="30" class="me-2" /> Volver al curso
+            </a>
+        }
         @if(Model.Temas != null && Model.Temas.Any()){
             @foreach(TemaViewModel tema in Model.Temas){
                 <div class="theme-header">
@@ -576,8 +583,9 @@
             </div>
         </div>
 
-        <div class="theme-content-container">
-            @foreach(TemaViewModel tema in Model.Temas){
+        <partial name="_Contenido" />
+        @foreach(TemaViewModel tema in Model.Temas){
+            <div class="theme-content-container">
                 <div class="theme-title">
                     @tema.NombreTema
                 </div>
@@ -610,8 +618,8 @@
                         </button>
                     </div>
                 }
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -706,40 +714,62 @@
             });
         });
 
-        // Manejo de la expansión/contracción de los temas
-        document.querySelectorAll('.theme-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                const icon = this.querySelector('.toggle-icon');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener todos los temas y contenidos
+            const temas = document.querySelectorAll('.theme-header');
+            const contenidos = document.querySelectorAll('.theme-content');
 
-                // Cerrar todos los temas abiertos
-                document.querySelectorAll('.theme-content').forEach(item => {
-                    if (item !== content) {
-                        item.classList.remove('open');
-                        const otherHeader = item.previousElementSibling;
-                        otherHeader.querySelector('.toggle-icon').textContent = '+';
+            // Cerrar todos los temas y solo abrir el primero
+            contenidos.forEach((content, index) => {
+                content.classList.toggle('open', index === 0); // Solo el primero abierto
+            });
+
+            // Ajustar los iconos de los temas (solo el primero debe estar en '-')
+            temas.forEach((header, index) => {
+                const icon = header.querySelector('.toggle-icon');
+                icon.textContent = index === 0 ? '-' : '+'; // El primero se queda en "-", los demás en "+"
+            });
+
+            // Mostrar solo el contenido del primer tema
+            const contenedoresContenido = document.querySelectorAll('.theme-content-container');
+            if (contenedoresContenido.length > 0) {
+                contenedoresContenido.forEach((c, index) => {
+                    c.style.display = index === 0 ? 'block' : 'none'; // Solo el primero visible
+                });
+            }
+
+            // Manejo de clics en el menú lateral
+            temas.forEach((header, index) => {
+                header.addEventListener('click', function() {
+                    // Alternar temas abiertos/cerrados
+                    temas.forEach((h, i) => {
+                        const content = h.nextElementSibling;
+                        if (i === index) {
+                            content.classList.toggle('open'); // Abrir/cerrar el actual
+                            h.querySelector('.toggle-icon').textContent = content.classList.contains('open') ? '-' : '+';
+                        } else {
+                            content.classList.remove('open'); // Cerrar los otros
+                            h.querySelector('.toggle-icon').textContent = '+'; 
+                        }
+                    });
+
+                    // Cambiar el contenido del área principal según el tema seleccionado
+                    contenedoresContenido.forEach(c => c.style.display = 'none'); // Ocultar todos
+                    if (contenedoresContenido.length > index) {
+                        contenedoresContenido[index].style.display = 'block'; // Mostrar el seleccionado
                     }
                 });
-
-                // Alternar el estado del tema clickeado
-                content.classList.toggle('open');
-                icon.textContent = content.classList.contains('open') ? '-' : '+';
             });
-        });
 
-        // Manejo de la selección de elementos del tema
-        document.querySelectorAll('.theme-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // Desactivar todos los elementos activos
-                document.querySelectorAll('.theme-item').forEach(i => {
-                    i.classList.remove('active');
+            // Manejo de selección dentro del tema (seleccionar contenido)
+            document.querySelectorAll('.theme-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Desactivar otros items
+                    document.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    console.log(`Seleccionado: ${this.textContent.trim()}`);
                 });
-
-                // Activar el elemento clickeado
-                this.classList.add('active');
-
-                // Aquí se cargaría el contenido dinámicamente
-                console.log(`Seleccionado: ${this.textContent.trim()}`);
             });
         });
     </script>

@@ -10,7 +10,7 @@ namespace MyVirtualAcademy.Models
         [Column("ID_Asignatura")]
         public int IdAsignatura { get; set; }
         [Column("ID_Curso")]
-        public int IdCuro { get; set; }
+        public int IdCurso { get; set; }
         [Column("Nombre")]
         public string Nombre { get; set; }
     }

@@ -132,7 +132,7 @@ namespace MyVirtualAcademy.Repositories
         public async Task<List<Asignatura>> GetAsignaturasPorCursoAsync(int idCurso)
         {
             return await this.context.Asignaturas
-                .Where(a => a.IdCuro == idCurso)
+                .Where(a => a.IdCurso == idCurso)
                 .ToListAsync();
         }
 

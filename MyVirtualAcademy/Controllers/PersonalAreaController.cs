@@ -58,9 +58,10 @@ namespace MyVirtualAcademy.Controllers
             });
         }
 
-        public async Task<IActionResult> DetallesAsignatura(int idAsignatura)
+        public async Task<IActionResult> DetallesAsignatura(int idAsignatura, int idCurso)
         {
             AsignaturaDetalleViewModel model = await this.repo.GetDetallesAsignatura(idAsignatura);
+            ViewData["IDCURSO"] = idCurso;
 
             if (model == null)
             {
