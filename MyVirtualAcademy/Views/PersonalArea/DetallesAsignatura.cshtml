@@ -434,6 +434,20 @@
             margin-bottom: 15px;
             text-align: center;
         }
+
+        .add-content-form {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .form-container {
+            margin-top: 1rem;
+        }
     </style>
     <style>
     /* Estilos Modal SweetAlert2 */
@@ -583,9 +597,8 @@
             </div>
         </div>
 
-        <partial name="_Contenido" />
         @foreach(TemaViewModel tema in Model.Temas){
-            <div class="theme-content-container">
+            <div class="theme-content-container" data-id-tema="@tema.IdTema">
                 <div class="theme-title">
                     @tema.NombreTema
                 </div>
@@ -606,18 +619,19 @@
                         </div>
                     }
                 }
-                else
-                {
-                    <div class="add-content-container">
+                <div class="add-content-container" id="addContentContainer-@tema.IdTema">
+                    @if (!(tema.Contenidos != null && tema.Contenidos.Any()))
+                    {
                         <p class="add-content-text">Aún no hay contenidos para este tema</p>
-                        <button class="add-button-card">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            <span>Añadir nuevo contenido</span>
-                        </button>
-                    </div>
-                }
+                    }
+                    <button class="add-button-card" data-id-tema="@tema.IdTema" data-nombre-tema="@tema.NombreTema">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Añadir nuevo contenido</span>
+                    </button>
+                </div>
+                <div class="form-container" id="formContainer-@tema.IdTema" style="display: none;"></div>
             </div>
         }
     </div>
@@ -769,6 +783,58 @@
                     this.classList.add('active');
 
                     console.log(`Seleccionado: ${this.textContent.trim()}`);
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Seleccionar todos los botones de añadir contenido
+            const botonesAnadirContenido = document.querySelectorAll('.add-button-card');
+
+            botonesAnadirContenido.forEach(boton => {
+                boton.addEventListener('click', function() {
+                    // Obtener el ID y nombre del tema
+                    const idAsignatura = document.getElementById('idAsignatura')?.value;
+                    const idTema = this.getAttribute('data-id-tema');
+                    const nombreTema = this.getAttribute('data-nombre-tema');
+
+                    // Ocultar el botón de añadir
+                    const addContainer = document.getElementById(`addContentContainer-${idTema}`);
+                    addContainer.style.display = 'none';
+
+                    // Mostrar el contenedor del formulario
+                    const formContainer = document.getElementById(`formContainer-${idTema}`);
+                    formContainer.style.display = 'block';
+
+                    // Cargar el formulario mediante AJAX
+                    fetch('/PersonalArea/GetFormularioContenido')
+                        .then(response => response.text())
+                        .then(html => {
+                            formContainer.innerHTML = html;
+
+                            // Asignar el ID del tema al campo oculto
+                            document.getElementById('IdTema').value = idTema;
+                            // Asignar el ID de la asignatura al campo oculto
+                            document.getElementById('IdAsignatura').value = idAsignatura;
+
+                            // Configurar evento para mostrar/ocultar campos según tipo de contenido
+                            const tipoSelect = document.getElementById('Tipo');
+                            const camposFechaEntrega = document.getElementById('camposFechaEntrega');
+                            const camposPuntuacion = document.getElementById('camposPuntuacion');
+
+                            tipoSelect.addEventListener('change', function() {
+                                const esTareaExamenQuiz = ['Tarea', 'Quiz', 'Examen'].includes(this.value);
+                                camposFechaEntrega.classList.toggle('d-none', !esTareaExamenQuiz);
+                                camposPuntuacion.classList.toggle('d-none', !esTareaExamenQuiz);
+                            });
+
+                            // Configurar botón de cancelar
+                            document.getElementById('btnCancelarNuevoContenido').addEventListener('click', function() {
+                                formContainer.style.display = 'none';
+                                addContainer.style.display = 'block';
+                            });
+                        })
+                        .catch(error => console.error('Error al cargar el formulario:', error));
                 });
             });
         });

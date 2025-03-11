@@ -58,10 +58,11 @@ namespace MyVirtualAcademy.Controllers
             });
         }
 
-        public async Task<IActionResult> DetallesAsignatura(int idAsignatura, int idCurso)
+        public async Task<IActionResult> DetallesAsignatura(int idAsignatura)
         {
             AsignaturaDetalleViewModel model = await this.repo.GetDetallesAsignatura(idAsignatura);
-            ViewData["IDCURSO"] = idCurso;
+            Curso curso = await this.repo.GetCursoPorAsignaturaAsync(idAsignatura);
+            ViewData["IDCURSO"] = curso.IdCurso;
 
             if (model == null)
             {
@@ -76,6 +77,24 @@ namespace MyVirtualAcademy.Controllers
         {
             await this.repo.CreateTemaAsync(tema.IdAsignatura, tema.Nombre, tema.Orden);
             return RedirectToAction("DetallesAsignatura", new { idAsignatura = tema.IdAsignatura });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AñadirContenido(Contenido contenido, int IdAsignatura)
+        {
+            int idTema = contenido.IdTema;
+
+            await this.repo.CreateContenidoAsync
+                ( contenido.IdTema, contenido.Titulo, contenido.Tipo, contenido.UrlContenido
+                 , contenido.Descripcion, contenido.Orden, contenido.FechaEntrega, contenido.PuntuacionMaxima);
+
+            return RedirectToAction("DetallesAsignatura", new { idAsignatura = IdAsignatura });
+        }
+
+
+        public IActionResult GetFormularioContenido()
+        {
+            return PartialView("_FormularioContenido", new Contenido());
         }
 
         public async Task<IActionResult> CrearCurso()

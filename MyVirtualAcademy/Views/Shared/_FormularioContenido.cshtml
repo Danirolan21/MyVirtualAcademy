@@ -1,0 +1,60 @@
+﻿@model Contenido
+
+<div class="add-content-form">
+    <h2 class="text-center mb-4">Añadir nuevo contenido</h2>
+
+    <form id="formNuevoContenido" action="/PersonalArea/AñadirContenido" method="POST">
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <label for="Titulo" class="form-label">Título</label>
+                <input type="text" id="Titulo" name="Titulo" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label for="Orden" class="form-label">Orden</label>
+                <input type="number" id="Orden" name="Orden" class="form-control" min="1" value="1" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="Descripcion" class="form-label">Descripción</label>
+            <textarea id="Descripcion" name="Descripcion" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="Tipo" class="form-label">Tipo de contenido</label>
+                <select id="Tipo" name="Tipo" class="form-select" required>
+                    <option value="Video">Video</option>
+                    <option value="Documento">Documento</option>
+                    <option value="Enlace">Enlace</option>
+                    <option value="Tarea">Tarea</option>
+                    <option value="Quiz">Quiz</option>
+                    <option value="Examen">Examen</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="URLContenido" class="form-label">URL del contenido</label>
+                <input type="text" id="URLContenido" name="URLContenido" class="form-control" placeholder="https://...">
+            </div>
+        </div>
+
+        <div id="camposFechaEntrega" class="mb-3 d-none">
+            <label for="FechaEntrega" class="form-label">Fecha de entrega</label>
+            <input type="datetime-local" id="FechaEntrega" name="FechaEntrega" class="form-control">
+        </div>
+
+        <div id="camposPuntuacion" class="mb-3 d-none">
+            <label for="PuntuacionMaxima" class="form-label">Puntuación máxima</label>
+            <input type="number" id="PuntuacionMaxima" name="PuntuacionMaxima" class="form-control" step="0.01" min="0">
+        </div>
+
+        <input type="hidden" id="IdAsignatura" name="IdAsignatura" value="">
+        <input type="hidden" id="IdTema" name="IdTema" value="">
+        <input type="hidden" id="IdContenido" name="IdContenido" value="0">
+
+        <div class="text-center mt-4">
+            <button type="button" id="btnCancelarNuevoContenido" class="btn btn-secondary me-2">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar contenido</button>
+        </div>
+    </form>
+</div>

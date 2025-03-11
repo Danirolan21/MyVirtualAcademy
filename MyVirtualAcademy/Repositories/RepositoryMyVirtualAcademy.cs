@@ -239,8 +239,6 @@ namespace MyVirtualAcademy.Repositories
             }
         }
 
-
-
         private async Task<int> GetMaxIdTemaAsync()
         {
             if (this.context.Temas.Count() == 0)
@@ -263,6 +261,57 @@ namespace MyVirtualAcademy.Repositories
             tema.Orden = Orden;
             await this.context.Temas.AddAsync(tema);
             await this.context.SaveChangesAsync();
+        }
+
+        private async Task<int> GetMaxIdContenidoAsync()
+        {
+            if (this.context.Contenidos.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.Contenidos.MaxAsync(x => x.IdContenido) + 1;
+            }
+        }
+
+        public async Task CreateContenidoAsync(int idTema, string titulo, string tipo, string urlContenido
+            , string descripcion, int orden, DateTime? fechaEntrega = null, decimal? puntuacionMaxima = null)
+        {
+            Contenido contenido = new Contenido();
+            contenido.IdContenido = await this.GetMaxIdContenidoAsync();
+            contenido.IdTema = idTema;
+            contenido.Titulo = titulo;
+            contenido.Tipo = tipo;
+            contenido.UrlContenido = urlContenido;
+            contenido.Descripcion = descripcion;
+            contenido.Orden = orden;
+            contenido.FechaPublicacion = DateTime.Now;
+
+            if (tipo == "Tarea" || tipo == "Quiz" || tipo == "Examen")
+            {
+                contenido.FechaEntrega = fechaEntrega;
+                contenido.PuntuacionMaxima = puntuacionMaxima;
+            }
+
+            await this.context.Contenidos.AddAsync(contenido);
+            await this.context.SaveChangesAsync();
+        }
+
+        public async Task<Curso> GetCursoPorAsignaturaAsync(int idAsignatura)
+        {
+            var asignatura = await this.context.Asignaturas
+                .FirstOrDefaultAsync(a => a.IdAsignatura == idAsignatura);
+
+            if (asignatura == null)
+            {
+                return null;
+            }
+
+            var curso = await this.context.Cursos
+                .FirstOrDefaultAsync(c => c.IdCurso == asignatura.IdCurso);
+
+            return curso;
         }
 
         public async Task<Curso> GetCursoByProfesorAsync(int idProfesor)
