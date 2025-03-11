@@ -8,10 +8,12 @@ namespace MyVirtualAcademy.Controllers
     public class PersonalAreaController : Controller
     {
         private RepositoryMyVirtualAcademy repo;
+        private HelperPathProvider helperPath;
 
-        public PersonalAreaController(RepositoryMyVirtualAcademy repo)
+        public PersonalAreaController(RepositoryMyVirtualAcademy repo, HelperPathProvider helperPath)
         {
             this.repo = repo;
+            this.helperPath = helperPath;
         }
 
         public IActionResult Index()
@@ -107,8 +109,74 @@ namespace MyVirtualAcademy.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearCurso(string nombre, string? descripcion, int idProfesor, DateTime fechaInicio, DateTime fechaFin, string estado, IFormFile imagenPortada)
         {
+            string fileName = imagenPortada.FileName;
+            string path =
+                this.helperPath.MapPath(fileName, Folders.courses);
+            using (Stream stream = new FileStream(path, FileMode.Create))
+            {
+                await imagenPortada.CopyToAsync(stream);
+            }
             await this.repo.CreateCourseAsync(nombre, descripcion, idProfesor, fechaInicio, fechaFin, estado, imagenPortada.FileName);
             return RedirectToAction("Administrador");
+        }
+
+        public async Task<IActionResult> ObtenerDatosCurso(int idCurso)
+        {
+            VistaCursosDetalles curso = await this.repo.GetDetallesCursoAsync(idCurso);
+            if (curso == null)
+            {
+                return NotFound();
+            }
+
+            List<VistaUsuariosConRoles> profesores = await this.repo.GetProfesoresAsync();
+
+            var resultado = new
+            {
+                idCurso = curso.IdCurso,
+                nombreCurso = curso.NombreCurso,
+                descripcion = curso.Descripcion,
+                idProfesor = curso.IdProfesor,
+                idSuplente = curso.IdSuplente,
+                profesores = profesores.Select(p => new {
+                    idUsuario = p.IdUsuario,
+                    nombre = p.Nombre,
+                    apellidos = p.Apellidos
+                }),
+                fechaInicio = curso.FechaInicio,
+                fechaFin = curso.FechaFin,
+                estado = curso.Estado,
+                imagenPortada = curso.ImagenPortada
+            };
+
+            return Json(resultado);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditarCurso(int idCurso, string nombre, string? descripcion,
+            int idProfesor, int? idSuplente, DateTime fechaInicio, DateTime fechaFin, string estado, IFormFile? imagenPortada)
+        {
+            string fileName = null;
+
+            if (imagenPortada != null)
+            {
+                fileName = imagenPortada.FileName;
+                string path = this.helperPath.MapPath(fileName, Folders.courses);
+
+                using (Stream stream = new FileStream(path, FileMode.Create))
+                {
+                    await imagenPortada.CopyToAsync(stream);
+                }
+            }
+
+            bool result = await this.repo.UpdateCourseAsync(idCurso, nombre, descripcion,
+                idProfesor, idSuplente, fechaInicio, fechaFin, estado, fileName);
+
+            if (!result)
+            {
+                return Json(new { success = false, message = "No se encontró el curso" });
+            }
+
+            return Json(new { success = true });
         }
 
         public async Task<IActionResult> Profesor()

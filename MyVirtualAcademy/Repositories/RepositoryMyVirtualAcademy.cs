@@ -223,6 +223,33 @@ namespace MyVirtualAcademy.Repositories
             await this.context.SaveChangesAsync();
         }
 
+        public async Task<bool> UpdateCourseAsync(int idCurso, string nombre, string? descripcion,
+                int idProfesor, int? idSuplente, DateTime fechaInicio, DateTime fechaFin, string estado, string? imagenPortada)
+        {
+            Curso curso = await this.context.Cursos.FindAsync(idCurso);
+
+            if (curso == null)
+            {
+                return false;
+            }
+
+            curso.Nombre = nombre;
+            curso.Descripcion = descripcion;
+            curso.IdProfesor = idProfesor;
+            curso.IdSuplente = idSuplente;
+            curso.FechaInicio = fechaInicio;
+            curso.FechaFin = fechaFin;
+            curso.Estado = estado;
+
+            if (imagenPortada != null)
+            {
+                curso.ImagenPortada = imagenPortada;
+            }
+
+            await this.context.SaveChangesAsync();
+            return true;
+        }
+
         #endregion
 
         #region AREA PERSONAL PROFESOR
