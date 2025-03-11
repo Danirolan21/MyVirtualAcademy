@@ -1,7 +1,7 @@
 ﻿@{
     string userRole = Context.Session.GetString("Rol");
     int? userId = Context.Session.GetInt32("IdUsuario");
-    string FotoPerfil = string.IsNullOrEmpty(Context.Session.GetString("Imagen")) ? "/assets/images/ProfileImage_Default.jpg" : Context.Session.GetString("Imagen"); 
+    string FotoPerfil = Context.Session.GetString("Imagen"); 
     string Nombre = Context.Session.GetString("Nombre");
 }
 
@@ -86,7 +86,7 @@
                         <ul class="expand-menu mr-auto">
                             <li>
                                 <a class="nav-link text-white fs-custom dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                    <img src="@FotoPerfil" width="50" height="50" class="rounded-5" />
+                                    <img src="/assets/images/users/@FotoPerfil" width="50" height="50" class="rounded-5" />
                                     @Nombre
                                 </a>
                                 <ul>

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing;
+using System.Drawing.Imaging;
+using Microsoft.EntityFrameworkCore;
 using MyVirtualAcademy.Data;
 using MyVirtualAcademy.Helper;
 using MyVirtualAcademy.Models;
@@ -8,10 +10,12 @@ namespace MyVirtualAcademy.Repositories
     public class RepositoryMyVirtualAcademy
     {
         private MyVirtualAcademyContext context;
+        private HelperPathProvider helperPath;
 
-        public RepositoryMyVirtualAcademy(MyVirtualAcademyContext context)
+        public RepositoryMyVirtualAcademy(MyVirtualAcademyContext context, HelperPathProvider helperPath)
         {
             this.context = context;
+            this.helperPath = helperPath;
         }
 
         #region MANAGED METHODS
@@ -28,6 +32,45 @@ namespace MyVirtualAcademy.Repositories
             }
         }
 
+        private string GetIniciales(string nombre)
+        {
+            string iniciales = "";
+            foreach (var palabra in nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                iniciales += char.ToUpper(palabra[0]);
+                if (iniciales.Length == 2) break;
+            }
+            return iniciales;
+        }
+
+        private byte[] GenerarAvatar(string iniciales)
+        {
+            int ancho = 150, alto = 150;
+            Bitmap bitmap = new Bitmap(ancho, alto);
+
+            Random random = new Random();
+            Color colorFondo = Color.FromArgb(
+                random.Next(10, 150),
+                random.Next(10, 150),
+                random.Next(10, 150)
+            );
+
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(colorFondo);
+                Font fuente = new Font("Arial", 50, FontStyle.Bold);
+                Brush textoBlanco = Brushes.White;
+                SizeF tamano = g.MeasureString(iniciales, fuente);
+                float x = (ancho - tamano.Width) / 2;
+                float y = (alto - tamano.Height) / 2;
+                g.DrawString(iniciales, fuente, textoBlanco, x, y);
+            }
+
+            using MemoryStream ms = new MemoryStream();
+            bitmap.Save(ms, ImageFormat.Png);
+            return ms.ToArray();
+        }
+
         public async Task Register(string nombre, string apellidos,
             string email, string password)
         {
@@ -40,6 +83,20 @@ namespace MyVirtualAcademy.Repositories
             user.Password_Hash = HelperCryptography.EncryptPassword(password, user.Salt);
             user.Password = password;
             user.FechaRegistro = DateTime.Now;
+
+            // Generar avatar con iniciales
+            string nombreCompleto = $"{nombre} {apellidos}";
+            string iniciales = GetIniciales(nombreCompleto);
+            byte[] avatarBytes = GenerarAvatar(iniciales);
+
+            // Guardar el avatar como archivo
+            string nombreAvatar = $"{user.IdUsuario}_{Guid.NewGuid()}.png";
+            string rutaArchivo = this.helperPath.MapPath(nombreAvatar, Folders.users);
+            System.IO.File.WriteAllBytes(rutaArchivo, avatarBytes);
+
+            // Asignar URL del avatar al usuario
+            user.FotoPerfil = nombreAvatar;
+
             this.context.Usuarios.Add(user);
             await this.context.SaveChangesAsync();
         }
