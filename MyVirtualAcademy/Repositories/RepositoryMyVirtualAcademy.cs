@@ -58,7 +58,7 @@ namespace MyVirtualAcademy.Repositories
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 g.Clear(colorFondo);
-                Font fuente = new Font("Arial", 50, FontStyle.Bold);
+                Font fuente = new Font("FavoritMno", 50, FontStyle.Bold);
                 Brush textoBlanco = Brushes.White;
                 SizeF tamano = g.MeasureString(iniciales, fuente);
                 float x = (ancho - tamano.Width) / 2;
@@ -72,7 +72,7 @@ namespace MyVirtualAcademy.Repositories
         }
 
         public async Task Register(string nombre, string apellidos,
-            string email, string password)
+            string email, string password, int idRol)
         {
             Usuario user = new Usuario();
             user.IdUsuario = await GetMaxIdUserAsync();
@@ -99,6 +99,9 @@ namespace MyVirtualAcademy.Repositories
 
             this.context.Usuarios.Add(user);
             await this.context.SaveChangesAsync();
+
+            // Asignar rol al usuario
+            await AsignarRolUsuarioAsync(user.IdUsuario, idRol);
         }
 
         public async Task<Usuario> LogInUserAsync(string email, string password)
@@ -145,6 +148,23 @@ namespace MyVirtualAcademy.Repositories
                            select v.Rol;
 
             return await consulta.FirstOrDefaultAsync();
+        }
+
+        public async Task AsignarRolUsuarioAsync(int idUsuario, int idRol)
+        {
+            UsuarioRol usuarioRol = new UsuarioRol
+            {
+                IdUsuario = idUsuario,
+                IdRol = idRol
+            };
+
+            this.context.UsuariosRoles.Add(usuarioRol);
+            await this.context.SaveChangesAsync();
+        }
+
+        public async Task<List<Rol>> GetRolesAsync()
+        {
+            return await this.context.Roles.ToListAsync();
         }
 
         public async Task<Usuario> 
@@ -398,11 +418,62 @@ namespace MyVirtualAcademy.Repositories
             return curso;
         }
 
-        public async Task<Curso> GetCursoByProfesorAsync(int idProfesor)
+        public async Task<List<VistaCursosDetalles>> GetCursosByProfesorAsync(int idProfesor)
         {
-            return await this.context.Cursos
-                .Where(x => x.IdProfesor == idProfesor)
-                .FirstOrDefaultAsync();
+            return await this.context.VistaCursosDetalles
+                .Where(c => c.IdProfesor == idProfesor || c.IdSuplente == idProfesor)
+                .ToListAsync();
+        }
+
+        public async Task<List<VistaAsignaturasProfesor>> GetAsignaturasByProfesorAsync(int idProfesor)
+        {
+            // Obtenemos primero los IDs de las asignaturas que imparte el profesor
+            var asignaturasIds = await this.context.ProfesoresAsignaturas
+                .Where(pa => pa.IdProfesor == idProfesor)
+                .Select(pa => pa.IdAsignatura)
+                .ToListAsync();
+
+            // Agrupamos la información de VistaDetallesAsignatura para obtener datos básicos
+            var asignaturas = await this.context.VistaDetallesAsignatura
+                .Where(a => asignaturasIds.Contains(a.IdAsignatura))
+                .GroupBy(a => new { a.IdAsignatura, a.NombreAsignatura })
+                .Select(g => new VistaAsignaturasProfesor
+                {
+                    IdAsignatura = g.Key.IdAsignatura,
+                    NombreAsignatura = g.Key.NombreAsignatura,
+                    NumeroTemas = g.Select(a => a.IdTema).Where(id => id != null).Distinct().Count(),
+                    NumeroContenidos = g.Select(a => a.IDContenido).Where(id => id != null).Distinct().Count()
+                })
+                .ToListAsync();
+
+            // Obtener información de los cursos para cada asignatura
+            foreach (var asignatura in asignaturas)
+            {
+                var cursoInfo = await this.context.Asignaturas
+                    .Where(a => a.IdAsignatura == asignatura.IdAsignatura)
+                    .Join(this.context.VistaCursosDetalles,
+                          a => a.IdCurso,
+                          c => c.IdCurso,
+                          (a, c) => new {
+                              IdCurso = c.IdCurso,
+                              NombreCurso = c.NombreCurso,
+                              Estado = c.Estado,
+                              FechaInicio = c.FechaInicio,
+                              FechaFin = c.FechaFin
+                          })
+                    .FirstOrDefaultAsync();
+
+                if (cursoInfo != null)
+                {
+                    asignatura.IdCurso = cursoInfo.IdCurso;
+                    asignatura.NombreCurso = cursoInfo.NombreCurso;
+                    asignatura.Estado = cursoInfo.Estado;
+                    asignatura.FechaInicio = cursoInfo.FechaInicio;
+                    asignatura.FechaFin = cursoInfo.FechaFin;
+                }
+            }
+
+            return asignaturas;
         }
 
         #endregion

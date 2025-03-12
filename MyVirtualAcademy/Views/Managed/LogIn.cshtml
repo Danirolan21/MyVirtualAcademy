@@ -1,23 +1,180 @@
 ﻿@model Usuario
 
+@section Styles {
+    <style>
+        main {
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-wrapper {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .login-box {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .login-decoration {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            transform: rotate(45deg);
+            z-index: 1;
+        }
+        
+        .login-content {
+            position: relative;
+            z-index: 2;
+            padding: 40px;
+        }
+        
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: #2d3436;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .login-title:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            height: 4px;
+            width: 50px;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            border-radius: 2px;
+        }
+        
+        .form-floating {
+            margin-bottom: 25px;
+        }
+        
+        .form-floating .form-control {
+            height: 60px;
+            border: none;
+            background-color: #f7f9fc;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-floating .form-control:focus {
+            background-color: #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+            border: 1px solid #dfe6e9;
+        }
+        
+        .form-floating label {
+            padding: 18px 20px;
+            color: #636e72;
+        }
+        
+        .login-btn {
+            height: 55px;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.25);
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(108, 92, 231, 0.35);
+            background: linear-gradient(45deg, #5d4ed6, #9b92ff);
+        }
+        
+        .welcome-message {
+            background: linear-gradient(45deg, rgba(108, 92, 231, 0.1), rgba(162, 155, 254, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #6c5ce7;
+        }
+        
+        .welcome-message h2 {
+            color: #2d3436;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .system-message {
+            background: linear-gradient(45deg, rgba(255, 118, 117, 0.1), rgba(255, 177, 177, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #ff7675;
+        }
+        
+        .system-message h2 {
+            color: #d63031;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+    </style>
+}
+
 <div class="container">
-	<h1 class="font-monospace">Iniciar Sesion</h1>
-
-	<form method="post">
-		<label class="form-label">Email: </label>
-		<input type="text" name="email" class="form-control" />
-		<label class="form-label">Contraseña: </label>
-		<input type="text" name="password" class="form-control" />
-		<button class="btn btn-success mt-2">
-			Iniciar Sesión
-		</button>
-	</form>
-
-	@if (Model != null)
-	{
-		<h2 style="color: chocolate">Te has registrado como @Model.Nombre @Model.Apellidos</h2>
-	}
-	
-	<h2 style="color: chocolate">@ViewData["MENSAJE"]</h2>
-
+    <main>
+        <div class="login-wrapper">
+            <div class="login-box">
+                <div class="login-decoration"></div>
+                <div class="login-content">
+                    <h1 class="login-title">Iniciar Sesión</h1>
+                    
+                    <form method="post">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="email" name="email" placeholder="Email" required>
+                            <label for="email">Email</label>
+                        </div>
+                        
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+                            <label for="password">Contraseña</label>
+                        </div>
+                        
+                        <button class="btn login-btn w-100 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Iniciar Sesión
+                        </button>
+                    </form>
+                    
+                    @if (Model != null)
+                    {
+                        <div class="welcome-message">
+                            <h2>Te has registrado como @Model.Nombre @Model.Apellidos</h2>
+                        </div>
+                    }
+                    
+                    @if (ViewData["MENSAJE"] != null)
+                    {
+                        <div class="system-message">
+                            <h2>@ViewData["MENSAJE"]</h2>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
 </div>

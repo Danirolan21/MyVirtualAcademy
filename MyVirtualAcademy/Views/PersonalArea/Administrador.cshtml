@@ -19,8 +19,9 @@
             --black: #000000;
             --light: #f8f8f8;
             --text-muted: #6c757d;
-            --border-color: #e0e0e0;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --border-radius: 12px;
+            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
         }
 
         main {
@@ -191,6 +192,32 @@
         .btn-options:hover {
             background-color: rgba(255, 255, 255, 1);
         }
+
+        .course-content-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-top: 20px;
+            transition: var(--transition);
+        }
+        
+        .add-content-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+        
+        .add-content-text {
+            color: var(--gray-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 }
 
@@ -293,7 +320,11 @@
             </div>
         }
         else {
-            <h5 class="rounded-2 bg-warning p-5">Actualmente no estas inscripto en ningun curso, si no es asi contacta con algun administrador.</h5>
+            <div class="course-content-container">
+                <div class="add-content-container">
+                    <p class="add-content-text">Aún no hay curso creados.</p>
+                </div>
+            </div>
         }
     </div>
 </main>

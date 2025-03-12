@@ -186,6 +186,11 @@
             font-size: 12px;
         }
 
+        .teacher-avatar img {
+                width: 100%;
+                border-radius: 50%;
+        }
+
         .teacher-name {
             font-weight: 500;
             color: var(--dark-color);
@@ -200,9 +205,9 @@
             transition: var(--transition);
         }
 
-            .theme-content-container:hover {
-                transform: translateY(-5px);
-            }
+        .theme-content-container:hover {
+            transform: translateY(-5px);
+        }
 
         .theme-title {
             font-size: 1.5rem;
@@ -590,7 +595,7 @@
             <div class="teachers-container">
                 @foreach(ProfesorViewModel profesor in Model.Profesores){
                     <div class="teacher-info">
-                        <div class="teacher-avatar"><img src="@profesor.FotoPerfil" /></div>
+                        <div class="teacher-avatar"><img src="/assets/images/users/@profesor.FotoPerfil" /></div>
                         <span class="teacher-name">@profesor.NombreProfesor @profesor.ApellidosProfesor</span>
                     </div>
                 }

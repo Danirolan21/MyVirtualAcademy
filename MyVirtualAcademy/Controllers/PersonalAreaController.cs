@@ -182,8 +182,18 @@ namespace MyVirtualAcademy.Controllers
         public async Task<IActionResult> Profesor()
         {
             int? userId = SessionHelper.GetUserId(HttpContext);
-            Curso curso = await this.repo.GetCursoByProfesorAsync(userId.Value);
-            return View(curso);
+            if (userId == null)
+            {
+                return RedirectToAction("LogIn", "Managed");
+            }
+
+            var viewModel = new ProfesorViewModel
+            {
+                Cursos = await this.repo.GetCursosByProfesorAsync(userId.Value),
+                Asignaturas = await this.repo.GetAsignaturasByProfesorAsync(userId.Value)
+            };
+
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Estudiante()

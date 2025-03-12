@@ -16,18 +16,21 @@ namespace MyVirtualAcademy.Controllers
             this.helperPath = helperPath;
         }
 
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
-            return View();
+            List<Rol> roles = await this.repo.GetRolesAsync();
+            return View(roles);
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(string nombre, string apellidos,
-            string email, string password)
+            string email, string password, int idRol)
         {
-            await this.repo.Register(nombre, apellidos, email, password);
+            await this.repo.Register(nombre, apellidos, email, password, idRol);
             ViewData["MENSAJE"] = "Usuario registrado correctamente!!!";
-            return View();
+
+            List<Rol> roles = await this.repo.GetRolesAsync();
+            return View(roles);
         }
 
         public IActionResult LogIn()
@@ -62,7 +65,7 @@ namespace MyVirtualAcademy.Controllers
             int? idUsuario = SessionHelper.GetUserId(HttpContext);
             Usuario usuario =
                 await this.repo.FindUserAsync(idUsuario.Value);
-            usuario.FotoPerfil = this.helperPath.MapUrlPath(usuario.FotoPerfil ?? "ProfileImage_Default.jpg", Folders.images);
+            usuario.FotoPerfil = this.helperPath.MapUrlPath(usuario.FotoPerfil, Folders.users);
             return View(usuario);
         }
 

@@ -1,4 +1,6 @@
-﻿<div class="container mt-3">
+﻿@model List<Rol>
+
+<div class="container mt-3">
 	<h1 class="font-monospace">Registrarse</h1>
 
 	<form method="post">
@@ -10,6 +12,16 @@
 		<input type="text" name="email" class="form-control" />
 		<label class="form-label">Contraseña: </label>
 		<input type="text" name="password" class="form-control" />
+		<div class="form-group">
+			<label class="form-label">Selecciona un Rol:</label><br />
+			@foreach (Rol rol in Model)
+			{
+				<div class="form-check form-check-inline">
+						<input class="form-check-input" type="radio" name="idRol" value="@rol.IdRol" id="IdRol_@rol.IdRol">
+						<label class="form-check-label" for="IdRol_@rol.IdRol">@rol.Nombre</label>
+				</div>
+			}
+		</div>
 		<button class="btn btn-success mt-2">
 			Registrarse
 		</button>
