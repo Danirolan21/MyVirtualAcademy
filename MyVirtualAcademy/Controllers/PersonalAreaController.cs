@@ -131,7 +131,7 @@ namespace MyVirtualAcademy.Controllers
             }
 
             // Redireccionar al detalle de la asignatura
-            return RedirectToAction("DetalleAsignatura", new { id = nuevoContenido.Tema.IdAsignatura });
+            return RedirectToAction("DetallesAsignatura", new { idAsignatura = nuevoContenido.Tema.IdAsignatura });
         }
 
 
@@ -228,16 +228,12 @@ namespace MyVirtualAcademy.Controllers
         [AuthorizeUsuarios(Policy = "ProfesorUTutor")]
         public async Task<IActionResult> Profesor()
         {
-            int? userId = SessionHelper.GetUserId(HttpContext);
-            if (userId == null)
-            {
-                return RedirectToAction("LogIn", "Managed");
-            }
+            var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var viewModel = new ProfesorViewModel
             {
-                Cursos = await this.repo.GetCursosByProfesorAsync(userId.Value),
-                Asignaturas = await this.repo.GetAsignaturasByProfesorAsync(userId.Value)
+                Cursos = await this.repo.GetCursosByProfesorAsync(usuarioId),
+                Asignaturas = await this.repo.GetAsignaturasByProfesorAsync(usuarioId)
             };
 
             return View(viewModel);
