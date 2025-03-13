@@ -9,9 +9,16 @@ namespace MyVirtualAcademy.Models
         [Key]
         [Column("ID_Asignatura")]
         public int IdAsignatura { get; set; }
+
         [Column("ID_Curso")]
         public int IdCurso { get; set; }
+
+        [ForeignKey("IdCurso")]
+        public Curso Curso { get; set; }
+
         [Column("Nombre")]
         public string Nombre { get; set; }
+
+        public List<Tema> Temas { get; set; }
     }
 }

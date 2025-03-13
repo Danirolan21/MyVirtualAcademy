@@ -1,0 +1,44 @@
+﻿
+@if (Context.User.Identity.IsAuthenticated == false)
+{
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link fs-custom text-white" asp-controller="PersonalArea" asp-action="Index">
+                LOG IN
+            </a>
+        </li>
+    </ul>
+}
+else
+{
+    <ul class="expand-menu mr-auto">
+        <li>
+            <a class="nav-link text-white fs-custom dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <img src="/assets/images/users/@Context.User.FindFirst("FotoPerfil").Value" width="50" height="50" class="rounded-5" />
+                @Context.User.Identity.Name
+            </a>
+            <ul>
+                <li>
+                    <a class="dropdown-item text-white" asp-controller="Managed" asp-action="Perfil">
+                        PERFIL
+                    </a>
+                </li>
+                @if (Context.User.IsInRole("Administrador"))
+                {
+                    <li>
+                        <a class="dropdown-item text-white"
+                           asp-controller="Managed"
+                           asp-action="Register">
+                            REGISTER
+                        </a>
+                    </li>
+                }
+                <li>
+                    <a class="dropdown-item text-white" asp-controller="Managed" asp-action="LogOut">
+                        LOG OUT
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+}

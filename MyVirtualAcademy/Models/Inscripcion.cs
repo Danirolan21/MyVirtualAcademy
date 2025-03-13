@@ -11,8 +11,12 @@ namespace MyVirtualAcademy.Models
         public int IdInscripcion { get; set; }
         [Column("ID_Estudiante")]
         public int IdEstudiante { get; set; }
+        [ForeignKey("IdEstudiante")]
+        public Usuario Estudiante { get; set; }
         [Column("ID_Curso")]
         public int IdCurso { get; set; }
+        [ForeignKey("IdCurso")]
+        public Curso Curso { get; set; }
         [Column("Fecha_Inscripcion")]
         public DateTime? FechaInscripcion { get; set; }
         [Column("Estado")]

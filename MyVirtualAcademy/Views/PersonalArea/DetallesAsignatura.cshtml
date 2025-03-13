@@ -559,7 +559,28 @@
                         @foreach (ContenidoViewModel contenido in @tema.Contenidos)
                         {
                             <div class="theme-item">
-                                <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" /> @contenido.TituloContenido
+                                @switch (contenido.TipoContenido)
+                                {
+                                    case "Video":
+                                        <img src="~/assets/iconos/video-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                    case "Documento":
+                                        <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                    case "Enlace":
+                                        <img src="~/assets/iconos/link-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                    case "Tarea":
+                                        <img src="~/assets/iconos/laptop-code-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                    case "Quiz":
+                                    case "Examen":
+                                        <img src="~/assets/iconos/circle-question-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                    default:
+                                        <img src="~/assets/iconos/book-solid.svg" class="me-2" width="15" height="15" />
+                                        break;
+                                } @contenido.TituloContenido
                             </div>
                         }
                     </div>
@@ -610,18 +631,72 @@
 
                 @if(tema.Contenidos != null && tema.Contenidos.Any()){
                     @foreach(ContenidoViewModel contenido in tema.Contenidos){
-                        <div class="content-item">
-                            <div class="content-icon theory-icon">
-                                <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                        <a asp-controller="PersonalArea" asp-action="Detalle" asp-route-id="@contenido.IdContenido" class="contenido-link">
+                            <div class="content-item">
+                                <div class="content-icon
+                                    @switch (contenido.TipoContenido)
+                                    {
+                                        case "Video":
+                                            <text>theory-icon</text>
+                                            break;
+                                        case "Documento":
+                                            <text>theory-icon</text>
+                                            break;
+                                        case "Enlace":
+                                            <text>theory-icon</text>
+                                            break;
+                                        case "Tarea":
+                                            <text>practice-icon</text>
+                                            break;
+                                        case "Quiz":
+                                        case "Examen":
+                                            <text>quiz-icon</text>
+                                            break;
+                                        default:
+                                            <text>theory-icon</text>
+                                            break;
+                                    }">
+                                    @switch (contenido.TipoContenido)
+                                    {
+                                        case "Video":
+                                    <img src="~/assets/iconos/video-solid.svg" width="15" height="15" />
+                                            break;
+                                        case "Documento":
+                                    <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                                            break;
+                                        case "Enlace":
+                                    <img src="~/assets/iconos/link-solid.svg" width="15" height="15" />
+                                            break;
+                                        case "Tarea":
+                                    <img src="~/assets/iconos/laptop-code-solid.svg" width="15" height="15" />
+                                            break;
+                                        case "Quiz":
+                                        case "Examen":
+                                    <img src="~/assets/iconos/circle-question-solid.svg" width="15" height="15" />
+                                            break;
+                                        default:
+                                    <img src="~/assets/iconos/book-solid.svg" width="15" height="15" />
+                                            break;
+                                    }
+                                </div>
+                                <div class="content-info">
+                                    <div class="content-title">@contenido.TituloContenido</div>
+                                    <div class="content-description">@contenido.DescripcionContenido</div>
+                                </div>
+                                @if (@contenido.Contenido_Completado == true)
+                                {
+                                    <button class="status-button status-done">
+                                        <img src="~/assets/iconos/check-solid.svg" class="me-2" width="15" height="15" /> Completado
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="status-button status-not-done">
+                                        <img src="~/assets/iconos/clock-solid.svg" class="me-2" width="15" height="15" /> Pendiente
+                                    </button>
+                                }
                             </div>
-                            <div class="content-info">
-                                <div class="content-title">@contenido.TituloContenido</div>
-                                <div class="content-description">@contenido.DescripcionContenido</div>
-                            </div>
-                            <button class="status-button status-done">
-                                <img src="~/assets/iconos/check-solid.svg" class="me-2" width="15" height="15" /> @contenido.Contenido_Completado
-                            </button>
-                        </div>
+                        </a>
                     }
                 }
                 <div class="add-content-container" id="addContentContainer-@tema.IdTema">
@@ -795,52 +870,90 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Seleccionar todos los botones de añadir contenido
             const botonesAnadirContenido = document.querySelectorAll('.add-button-card');
-
-            botonesAnadirContenido.forEach(boton => {
-                boton.addEventListener('click', function() {
+    
+            // Usar delegación de eventos para manejar clics en botones actuales y futuros
+            document.addEventListener('click', function(event) {
+                // Verificar si el elemento clickeado es un botón de añadir contenido
+                if (event.target.closest('.add-button-card')) {
+                    const boton = event.target.closest('.add-button-card');
+            
                     // Obtener el ID y nombre del tema
                     const idAsignatura = document.getElementById('idAsignatura')?.value;
-                    const idTema = this.getAttribute('data-id-tema');
-                    const nombreTema = this.getAttribute('data-nombre-tema');
-
-                    // Ocultar el botón de añadir
+                    const idTema = boton.getAttribute('data-id-tema');
+                    const nombreTema = boton.getAttribute('data-nombre-tema');
+            
+                    // Encontrar el contenedor correcto para este tema específico
                     const addContainer = document.getElementById(`addContentContainer-${idTema}`);
-                    addContainer.style.display = 'none';
-
-                    // Mostrar el contenedor del formulario
                     const formContainer = document.getElementById(`formContainer-${idTema}`);
-                    formContainer.style.display = 'block';
-
-                    // Cargar el formulario mediante AJAX
-                    fetch('/PersonalArea/GetFormularioContenido')
-                        .then(response => response.text())
-                        .then(html => {
-                            formContainer.innerHTML = html;
-
-                            // Asignar el ID del tema al campo oculto
-                            document.getElementById('IdTema').value = idTema;
-                            // Asignar el ID de la asignatura al campo oculto
-                            document.getElementById('IdAsignatura').value = idAsignatura;
-
-                            // Configurar evento para mostrar/ocultar campos según tipo de contenido
-                            const tipoSelect = document.getElementById('Tipo');
-                            const camposFechaEntrega = document.getElementById('camposFechaEntrega');
-                            const camposPuntuacion = document.getElementById('camposPuntuacion');
-
-                            tipoSelect.addEventListener('change', function() {
-                                const esTareaExamenQuiz = ['Tarea', 'Quiz', 'Examen'].includes(this.value);
-                                camposFechaEntrega.classList.toggle('d-none', !esTareaExamenQuiz);
-                                camposPuntuacion.classList.toggle('d-none', !esTareaExamenQuiz);
-                            });
-
-                            // Configurar botón de cancelar
-                            document.getElementById('btnCancelarNuevoContenido').addEventListener('click', function() {
-                                formContainer.style.display = 'none';
-                                addContainer.style.display = 'block';
-                            });
-                        })
-                        .catch(error => console.error('Error al cargar el formulario:', error));
-                });
+            
+                    if (addContainer && formContainer) {
+                        // Ocultar el botón de añadir
+                        addContainer.style.display = 'none';
+                
+                        // Mostrar el contenedor del formulario
+                        formContainer.style.display = 'block';
+                
+                        // Cargar el formulario mediante AJAX
+                        fetch('/PersonalArea/GetFormularioContenido')
+                            .then(response => response.text())
+                            .then(html => {
+                                formContainer.innerHTML = html;
+                        
+                                // Asignar valores a campos ocultos
+                                if (formContainer.querySelector('#IdTema')) {
+                                    formContainer.querySelector('#IdTema').value = idTema;
+                                }
+                                if (formContainer.querySelector('#IdAsignatura')) {
+                                    formContainer.querySelector('#IdAsignatura').value = idAsignatura;
+                                }
+                        
+                                // Configurar el tipo de contenido y los campos relacionados
+                                const tipoSelect = formContainer.querySelector('#Tipo');
+                                const camposFechaEntrega = formContainer.querySelector('#camposFechaEntrega');
+                                const camposPuntuacion = formContainer.querySelector('#camposPuntuacion');
+                                const camposExamenQuiz = formContainer.querySelector('#camposExamenQuiz');
+                                const contenidoUrlContainer = formContainer.querySelector('#contenidoUrlContainer');
+                                const contenidoFileContainer = formContainer.querySelector('#contenidoFileContainer');
+                        
+                                if (tipoSelect) {
+                                    // Función para actualizar campos según el tipo seleccionado
+                                    function actualizarCamposPorTipo() {
+                                        const tipoSeleccionado = tipoSelect.value;
+                                
+                                        // Mostrar/ocultar campos de entrega y puntuación
+                                        const esTareaExamenQuiz = ['Tarea', 'Quiz', 'Examen'].includes(tipoSeleccionado);
+                                        if (camposFechaEntrega) camposFechaEntrega.classList.toggle('d-none', !esTareaExamenQuiz);
+                                        if (camposPuntuacion) camposPuntuacion.classList.toggle('d-none', !esTareaExamenQuiz);
+                                
+                                        // Mostrar/ocultar campos específicos de examen y quiz
+                                        const esExamenQuiz = ['Quiz', 'Examen'].includes(tipoSeleccionado);
+                                        if (camposExamenQuiz) camposExamenQuiz.classList.toggle('d-none', !esExamenQuiz);
+                                
+                                        // Cambiar entre URL y archivo según tipo
+                                        const esEnlace = tipoSeleccionado === 'Enlace';
+                                        if (contenidoUrlContainer) contenidoUrlContainer.classList.toggle('d-none', !esEnlace);
+                                        if (contenidoFileContainer) contenidoFileContainer.classList.toggle('d-none', esEnlace);
+                                    }
+                            
+                                    // Aplicar configuración inicial
+                                    actualizarCamposPorTipo();
+                            
+                                    // Configurar evento para detectar cambios en el tipo
+                                    tipoSelect.addEventListener('change', actualizarCamposPorTipo);
+                                }
+                        
+                                // Configurar botón de cancelar
+                                const btnCancelar = formContainer.querySelector('#btnCancelarNuevoContenido');
+                                if (btnCancelar) {
+                                    btnCancelar.addEventListener('click', function() {
+                                        formContainer.style.display = 'none';
+                                        addContainer.style.display = 'block';
+                                    });
+                                }
+                            })
+                            .catch(error => console.error('Error al cargar el formulario:', error));
+                    }
+                }
             });
         });
     </script>

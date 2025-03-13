@@ -17,7 +17,9 @@ namespace MyVirtualAcademy.Data
         public DbSet<ProfesorAsignatura> ProfesoresAsignaturas { get; set; }
         public DbSet<Tema> Temas { get; set; }
         public DbSet<Contenido> Contenidos { get; set; }
+        public DbSet<Examen> Examenes { get; set; }
         public DbSet<Inscripcion> Inscripciones { get; set; }
+        public DbSet<ProgresoInscripcion> ProgresoInscripciones { get; set; }
         public DbSet<VistaUsuariosConRoles> VistaUsuariosConRoles { get; set; }
         public DbSet<ViewAsignaturaUsuario> VistaAsignaturasUsuario { get; set; }
         public DbSet<VistaCursosDetalles> VistaCursosDetalles { get; set; }
@@ -29,6 +31,8 @@ namespace MyVirtualAcademy.Data
                 .HasKey(ur => new { ur.IdUsuario, ur.IdRol });
             modelBuilder.Entity<ProfesorAsignatura>()
                 .HasKey(pa => new { pa.IdAsignatura, pa.IdProfesor });
+            modelBuilder.Entity<ProgresoInscripcion>()
+                .HasKey(pi => new { pi.IdInscripcion, pi.IdContenido });
             modelBuilder.Entity<VistaUsuariosConRoles>().HasNoKey().ToView("Vista_Usuarios_Con_Roles");
             modelBuilder.Entity<ViewAsignaturaUsuario>().HasNoKey().ToView("Vista_Asignaturas_Usuario");
             modelBuilder.Entity<VistaDetallesAsignatura>().HasNoKey().ToView("Vista_Detalles_Asignatura");

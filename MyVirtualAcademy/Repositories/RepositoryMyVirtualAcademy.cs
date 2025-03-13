@@ -379,7 +379,7 @@ namespace MyVirtualAcademy.Repositories
             }
         }
 
-        public async Task CreateContenidoAsync(int idTema, string titulo, string tipo, string urlContenido
+        public async Task<Contenido> CreateContenidoAsync(int idTema, string titulo, string tipo, string urlContenido
             , string descripcion, int orden, DateTime? fechaEntrega = null, decimal? puntuacionMaxima = null)
         {
             Contenido contenido = new Contenido();
@@ -387,7 +387,7 @@ namespace MyVirtualAcademy.Repositories
             contenido.IdTema = idTema;
             contenido.Titulo = titulo;
             contenido.Tipo = tipo;
-            contenido.UrlContenido = urlContenido;
+            contenido.URLContenido = urlContenido;
             contenido.Descripcion = descripcion;
             contenido.Orden = orden;
             contenido.FechaPublicacion = DateTime.Now;
@@ -399,6 +399,23 @@ namespace MyVirtualAcademy.Repositories
             }
 
             await this.context.Contenidos.AddAsync(contenido);
+            await this.context.SaveChangesAsync();
+            return await this.ObtenerContenidoPorIdAsync(contenido.IdContenido);
+        }
+
+        public async Task CreateExamenAsync(int idContenido, int duracionMinutos, DateTime fechaPublicacionNotas
+            , int numeroIntentos, decimal PenalizacionIncorrecta)
+        {
+            Examen examen = new Examen
+            {
+                IdContenido = idContenido,
+                DuracionMinutos = duracionMinutos,
+                FechaPublicacionNotas = fechaPublicacionNotas,
+                IntentosMaximos = numeroIntentos,
+                PenalizacionIncorrecta = PenalizacionIncorrecta
+            };
+
+            await this.context.Examenes.AddAsync(examen);
             await this.context.SaveChangesAsync();
         }
 
@@ -485,6 +502,107 @@ namespace MyVirtualAcademy.Repositories
             return await this.context.VistaAsignaturasUsuario
                 .Where(x => x.IdUsuario == idUsuario)
                 .ToListAsync();
+        }
+
+        #endregion
+
+        #region CONTENIDOS
+
+        public async Task<Contenido> ObtenerContenidoPorIdAsync(int id)
+        {
+            return await this.context.Contenidos
+                .Include(c => c.Tema)
+                .ThenInclude(t => t.Asignatura)
+                .FirstOrDefaultAsync(c => c.IdContenido == id);
+        }
+
+        public async Task<bool> UsuarioTieneAccesoAsync(int idContenido, int usuarioId, bool esAdmin)
+        {
+            if (esAdmin) return true;
+
+            var contenido = await ObtenerContenidoPorIdAsync(idContenido);
+            if (contenido == null) return false;
+
+            if (contenido.Tema.Asignatura.Curso.IdProfesor == usuarioId ||
+                contenido.Tema.Asignatura.Curso.IdSuplente == usuarioId)
+                return true;
+
+            bool esProfesorAsignatura = await this.context.ProfesoresAsignaturas
+                .AnyAsync(pa => pa.IdAsignatura == contenido.Tema.IdAsignatura && pa.IdProfesor == usuarioId);
+
+            if (esProfesorAsignatura) return true;
+
+            bool estaInscrito = await this.context.Inscripciones
+                .AnyAsync(i => i.IdCurso == contenido.Tema.Asignatura.IdCurso &&
+                               i.IdEstudiante == usuarioId &&
+                               i.Estado == "Activo");
+
+            return estaInscrito;
+        }
+
+        public async Task RegistrarVisualizacionRecursoAsync(int idUsuario, int idContenido)
+        {
+            var cursoId = await this.context.Contenidos
+                .Where(c => c.IdContenido == idContenido)
+                .Select(c => c.Tema.Asignatura.IdCurso)
+                .FirstOrDefaultAsync();
+
+            if (cursoId == 0) return;
+
+            var inscripcion = await this.context.Inscripciones
+                .FirstOrDefaultAsync(i => i.IdCurso == cursoId && i.IdEstudiante == idUsuario);
+
+            if (inscripcion == null) return;
+
+            var progreso = await this.context.ProgresoInscripciones
+                .FirstOrDefaultAsync(p => p.IdInscripcion == inscripcion.IdInscripcion && p.IdContenido == idContenido);
+
+            if (progreso == null)
+            {
+                progreso = new ProgresoInscripcion
+                {
+                    IdInscripcion = inscripcion.IdInscripcion,
+                    IdContenido = idContenido,
+                    Completo = true,
+                    FechaCompletado = DateTime.Now
+                };
+
+                this.context.ProgresoInscripciones.Add(progreso);
+                await this.context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<int?> ObtenerCursoPorContenidoAsync(int idContenido)
+        {
+            return await this.context.Contenidos
+                .Include(c => c.Tema)
+                .ThenInclude(t => t.Asignatura)
+                .Where(c => c.IdContenido == idContenido)
+                .Select(c => c.Tema.Asignatura.IdCurso)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<Inscripcion> ObtenerInscripcionAsync(int cursoId, int usuarioId)
+        {
+            return await this.context.Inscripciones
+                .FirstOrDefaultAsync(i => i.IdCurso == cursoId && i.IdEstudiante == usuarioId);
+        }
+
+        public async Task<ProgresoInscripcion> ObtenerProgresoAsync(int inscripcionId, int idContenido)
+        {
+            return await this.context.ProgresoInscripciones
+                .FirstOrDefaultAsync(p => p.IdInscripcion == inscripcionId && p.IdContenido == idContenido);
+        }
+
+        public async Task RegistrarProgresoAsync(ProgresoInscripcion progreso)
+        {
+            this.context.ProgresoInscripciones.Add(progreso);
+            await this.context.SaveChangesAsync();
+        }
+
+        public async Task GuardarCambiosAsync()
+        {
+            await this.context.SaveChangesAsync();
         }
 
         #endregion

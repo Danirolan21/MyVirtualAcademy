@@ -1,0 +1,52 @@
+﻿@model Usuario
+@{
+    string? userRole = SessionHelper.GetUserRole(HttpContextAccessor.HttpContext);
+}
+<section id="dashboard-page">
+    <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="idUsuario" value="@Model.IdUsuario" />
+        <div class="profile-section">
+            <div class="profile-image-container">
+                <div class="position-relative">
+                    <img src="@Model.FotoPerfil" class="rounded-circle" width="250" height="250" />
+                    <label for="profile-pic-upload" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2" style="cursor: pointer; z-index: 3;">
+                        <i class="fas fa-pencil-alt"></i>
+                    </label>
+                    <input type="file" id="profile-pic-upload" name="fotoPerfil" style="display: none;" accept="image/*" />
+                </div>
+                <button type="submit" class="edit-profile-btn">
+                    Guardar cambios
+                </button>
+            </div>
+            <h1 class="profile-heading">
+                <input type="text" class="bg-transparent border-0 text-white w-100" id="nombre" name="nombre" value="@Model.Nombre" required style="font-size: inherit; font-weight: inherit; font-family: inherit;" />
+            </h1>
+            <h1 class="profile-heading">
+                <input type="text" class="bg-transparent border-0 text-white w-100" id="apellidos" name="apellidos" value="@Model.Apellidos" required style="font-size: inherit; font-weight: inherit; font-family: inherit;" />
+            </h1>
+            <h1 class="profile-heading">
+                @userRole
+            </h1>
+        </div>
+        <div class="container profile-info d-flex justify-content-between gap-1">
+            <div class="border-black w-50 ps-2">
+                <h1 class="mb-1 border-black">
+                    Mis <span class="text-danger fst-italic">Cursos</span>
+                </h1>
+            </div>
+            <div class="border-black w-50 ps-2" style="margin-top: -125px">
+                <h1 class="mb-1 border-black">
+                    Mas <span class="text-danger fst-italic">datos</span>
+                </h1>
+                <h2>Correo: </h2>
+                <p>@Model.Email</p>
+                <h2>Teléfono: </h2>
+                <div class="form-group mb-3">
+                    <input type="tel" class="form-control" id="telefono" name="telefono" value="@Model.Telefono" placeholder="Número de teléfono" />
+                </div>
+                <h2>Fecha de registro: </h2>
+                <p>@Model.FechaRegistro.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </form>
+</section>

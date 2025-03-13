@@ -1,5 +1,4 @@
 ﻿@model Usuario
-
 @{
     string? userRole = SessionHelper.GetUserRole(HttpContextAccessor.HttpContext);
 }
@@ -21,13 +20,11 @@
             @userRole
         </h1>
     </div>
-
     <div class="container profile-info d-flex justify-content-between gap-1">
         <div class="border-black w-50 ps-2">
             <h1 class="mb-1 border-black">
                 Mis <span class="text-danger fst-italic">Cursos</span>
             </h1>
-
         </div>
         <div class="border-black w-50 ps-2" style="margin-top: -125px">
             <h1 class="mb-1 border-black">
@@ -35,6 +32,10 @@
             </h1>
             <h2>Correo: </h2>
             <p>@Model.Email</p>
+            <h2>Teléfono: </h2>
+            <p>@(string.IsNullOrEmpty(Model.Telefono) ? "No especificado" : Model.Telefono)</p>
+            <h2>Fecha de registro: </h2>
+            <p>@Model.FechaRegistro.ToString("dd/MM/yyyy")</p>
         </div>
     </div>
 </section>

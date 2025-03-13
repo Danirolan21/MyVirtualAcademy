@@ -1,0 +1,165 @@
+﻿@model RecursoViewModel
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/Home">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="/PersonalArea/DetallesAsignatura?idAsignatura=@Model.IdAsignatura">@Model.NombreAsignatura</a></li>
+                    <li class="breadcrumb-item"><a href="/PersonalArea/DetallesAsignatura?idAsignatura=@Model.IdAsignatura">@Model.NombreTema</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Titulo</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        @if (Model.Tipo == "Documento")
+                        {
+                            <i class="fas fa-file-alt text-primary me-3 fs-3"></i>
+                        }
+                        else if (Model.Tipo == "Video")
+                        {
+                            <i class="fas fa-video text-danger me-3 fs-3"></i>
+                        }
+                        else if (Model.Tipo == "Enlace")
+                        {
+                            <i class="fas fa-link text-success me-3 fs-3"></i>
+                        }
+                        <h4 class="mb-0">@Model.Titulo</h4>
+                    </div>
+                    <span class="badge bg-secondary">@Model.Tipo</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-4">
+                        <small class="text-muted">Publicado el @Model.FechaPublicacion.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Descripción</h5>
+                        <p>@Model.Descripcion</p>
+                    </div>
+
+                    <div class="resource-content my-4">
+                        @if (Model.Tipo == "Video")
+                        {
+                            <div class="ratio ratio-16x9">
+                                <iframe src="@Model.UrlContenido" allowfullscreen></iframe>
+                            </div>
+                        }
+                        else if (Model.Tipo == "Enlace")
+                        {
+                            <div class="d-grid gap-2">
+                                <a href="@Model.UrlContenido" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-external-link-alt me-2"></i>Visitar enlace
+                                </a>
+                            </div>
+                        }
+                        else if (Model.Tipo == "Documento")
+                        {
+                            <div class="document-preview p-3 bg-light rounded mb-3">
+                                <div class="text-center">
+                                    <i class="fas fa-file-pdf text-danger fa-4x mb-3"></i>
+                                    <h5 class="documento-nombre">@Model.UrlContenido</h5>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="/uploads/contents/@Model.UrlContenido" download class="btn btn-primary">
+                                    <i class="fas fa-download me-2"></i>Descargar documento
+                                </a>
+                                <a href="/uploads/contents/@Model.UrlContenido" target="_blank" class="btn btn-outline-secondary">
+                                    <i class="fas fa-eye me-2"></i>Ver documento
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                        <div>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Profesor"))
+                            {
+                                <a href="/Contenido/Editar/@Model.IdContenido" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-edit me-1"></i>Editar
+                                </a>
+                            }
+                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#commentModal">
+                                <i class="fas fa-comment me-1"></i>Comentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de comentarios -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Comentarios</h5>
+                </div>
+                <div class="card-body">
+                    <div class="comments-container">
+                        <!-- Aquí se cargarían los comentarios dinámicamente -->
+                        <div class="text-center text-muted py-3">
+                            No hay comentarios aún. ¡Sé el primero en comentar!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para comentarios -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentModalLabel">Añadir comentario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="commentForm">
+                    <input type="hidden" id="contenidoId" value="@Model.IdContenido" />
+                    <div class="mb-3">
+                        <label for="commentText" class="form-label">Comentario</label>
+                        <textarea class="form-control" id="commentText" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="submitComment">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#submitComment").click(function() {
+                const comentario = $("#commentText").val();
+                const contenidoId = $("#contenidoId").val();
+
+                if (comentario.trim() === "") {
+                    alert("Por favor, escribe un comentario.");
+                    return;
+                }
+
+                // Aquí irían las llamadas AJAX para enviar el comentario
+                // $.ajax({...})
+
+                // Simulación de éxito
+                alert("Comentario enviado correctamente.");
+                $("#commentModal").modal("hide");
+                $("#commentText").val("");
+            });
+        });
+    </script>
+}

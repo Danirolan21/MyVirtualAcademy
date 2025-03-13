@@ -28,7 +28,7 @@ namespace MyVirtualAcademy.Models
         [Column("Ultimo_Acceso")]
         public DateTime? UltimoAcceso { get; set; }
         [Column("Foto_Perfil")]
-        public string? FotoPerfil { get; set; }
+        public string FotoPerfil { get; set; }
         [Column("Telefono")]
         public string? Telefono { get; set; }
         [Column("Token_Recuperacion")]

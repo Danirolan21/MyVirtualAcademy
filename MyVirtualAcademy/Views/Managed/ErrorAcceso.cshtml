@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "Error 404 - Página no encontrada";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .error-page-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 2rem;
+            background-color: #f8f9fa;
+        }
+
+        .error-content {
+            max-width: 700px;
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-code {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 1.5rem;
+            line-height: 1;
+        }
+
+        .circle {
+            width: 120px;
+            height: 120px;
+            background-color: #f8d7da;
+            border-radius: 50%;
+            margin: 0 10px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .circle::before {
+                content: "0";
+                font-size: 8rem;
+                color: #dc3545;
+                position: relative;
+                z-index: 2;
+            }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0%
+
+        {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+        }
+
+        70% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #343a40;
+        }
+
+        .error-message {
+            color: #6c757d;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            margin-top: 2rem;
+        }
+
+        @@media (max-width: 768px) {
+            .error-code
+
+        {
+            font-size: 5rem;
+        }
+
+        .circle {
+            width: 80px;
+            height: 80px;
+        }
+
+            .circle::before {
+                font-size: 5rem;
+            }
+
+        .error-title {
+            font-size: 1.8rem;
+        }
+
+        .error-content {
+            padding: 2rem 1rem;
+        }
+
+        .error-actions .btn {
+            display: block;
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .error-actions .ms-3 {
+            margin-left: 0 !important;
+        }
+
+        }
+    </style>
+}
+
+<div class="error-page-container">
+    <div class="error-content">
+        <div class="error-code">
+            <span>4</span>
+            <div class="circle pulse"></div>
+            <span>4</span>
+        </div>
+        <h1 class="error-title">¡Ups! Página no encontrada</h1>
+        <div class="error-message">
+            <p>Parece que te has aventurado en territorio desconocido. El recurso educativo que buscas podría estar en otra dimensión del conocimiento o simplemente no existe.</p>
+            <p>Mientras nuestros expertos rastrean el contenido perdido, te invitamos a explorar otros recursos disponibles o volver al inicio para continuar tu viaje de aprendizaje.</p>
+        </div>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary btn-lg">
+                <i class="fas fa-home me-2"></i>Volver al inicio
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg ms-3">
+                <i class="fas fa-arrow-left me-2"></i>Página anterior
+            </a>
+        </div>
+    </div>
+</div>

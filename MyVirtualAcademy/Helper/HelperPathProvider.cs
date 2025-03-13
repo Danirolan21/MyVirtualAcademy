@@ -1,6 +1,6 @@
 ﻿namespace MyVirtualAcademy.Helper
 {
-    public enum Folders { images, users, courses }
+    public enum Folders { images, users, courses, contents }
     public class HelperPathProvider
     {
         private IWebHostEnvironment hostEnvironment;
@@ -20,6 +20,7 @@
                 Folders.images => "assets/images",
                 Folders.users => "assets/images/users",
                 Folders.courses => "assets/images/courses",
+                Folders.contents => "uploads/contents",
                 _ => throw new ArgumentOutOfRangeException(nameof(folder), folder, null)
             };
 
@@ -40,6 +41,7 @@
                 Folders.images => "assets/images",
                 Folders.users => "assets/images/users",
                 Folders.courses => "assets/images/courses",
+                Folders.contents => "uploads/contents",
                 _ => throw new ArgumentOutOfRangeException(nameof(folder), folder, null)
             };
             var request = this.httpContextAccessor.HttpContext.Request;
