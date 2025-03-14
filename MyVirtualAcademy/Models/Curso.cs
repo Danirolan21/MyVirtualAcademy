@@ -25,5 +25,6 @@ namespace MyVirtualAcademy.Models
         public string Estado { get; set; }
         [Column("Imagen_Portada")]
         public string? ImagenPortada { get; set; }
+        public List<Asignatura> Asignaturas { get; set; }
     }
 }

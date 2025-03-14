@@ -497,11 +497,73 @@ namespace MyVirtualAcademy.Repositories
 
         #region AREA PERSONAL ESTUDIANTE
 
-        public async Task<List<ViewAsignaturaUsuario>> GetAsignaturasByUserAsync(int idUsuario)
+        public async Task<List<AsignaturaUsuarioDTO>> GetAsignaturasByUserAsync(int idUsuario)
         {
-            return await this.context.VistaAsignaturasUsuario
-                .Where(x => x.IdUsuario == idUsuario)
+            // 🔹 Obtener todas las inscripciones activas del usuario
+            var inscripciones = await this.context.Inscripciones
+                .Where(i => i.IdEstudiante == idUsuario && i.Estado == "Activo")
+                .Include(i => i.Estudiante)
+                .Include(i => i.Curso)
+                .ThenInclude(c => c.Asignaturas)
                 .ToListAsync();
+
+            // 🔹 Obtener los profesores en un solo query para optimizar rendimiento
+            var profesoresDict = await this.context.ProfesoresAsignaturas
+                .Include(pa => pa.Profesor)
+                .GroupBy(pa => pa.IdAsignatura)
+                .ToDictionaryAsync(g => g.Key, g => $"{g.First().Profesor.Nombre} {g.First().Profesor.Apellidos}");
+
+            // 🔹 Obtener el progreso del usuario en cada asignatura
+            var progresoDict = await this.context.ProgresoInscripciones
+                .Where(p => p.Completo)
+                .GroupBy(p => p.IdInscripcion)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+
+            var resultado = new List<AsignaturaUsuarioDTO>();
+
+            foreach (var inscripcion in inscripciones)
+            {
+                foreach (var asignatura in inscripcion.Curso.Asignaturas)
+                {
+                    var nombreProfesor = profesoresDict.ContainsKey(asignatura.IdAsignatura)
+                        ? profesoresDict[asignatura.IdAsignatura]
+                        : "Sin profesor asignado";
+
+                    // 🔹 Contar temas y contenidos de la asignatura
+                    var temasCount = await this.context.Temas
+                        .CountAsync(t => t.IdAsignatura == asignatura.IdAsignatura);
+
+                    var contenidosTotales = await this.context.Contenidos
+                        .Where(c => c.Tema.IdAsignatura == asignatura.IdAsignatura)
+                        .CountAsync();
+
+                    var contenidosCompletados = progresoDict.ContainsKey(inscripcion.IdInscripcion)
+                        ? progresoDict[inscripcion.IdInscripcion]
+                        : 0;
+
+                    var progreso = contenidosTotales > 0
+                        ? (decimal)contenidosCompletados / contenidosTotales * 100
+                        : 0;
+
+                    resultado.Add(new AsignaturaUsuarioDTO
+                    {
+                        IdUsuario = idUsuario,
+                        NombreUsuario = inscripcion.Estudiante.Nombre,
+                        IdCurso = inscripcion.IdCurso,
+                        NombreCurso = inscripcion.Curso.Nombre,
+                        IdAsignatura = asignatura.IdAsignatura,
+                        NombreAsignatura = asignatura.Nombre,
+                        NombreProfesor = nombreProfesor,
+                        FechaInicio = inscripcion.Curso.FechaInicio,
+                        FechaFin = inscripcion.Curso.FechaFin,
+                        Estado = inscripcion.Curso.Estado,
+                        NumeroTemas = temasCount,
+                        Progreso = progreso
+                    });
+                }
+            }
+
+            return resultado;
         }
 
         #endregion
@@ -513,6 +575,7 @@ namespace MyVirtualAcademy.Repositories
             return await this.context.Contenidos
                 .Include(c => c.Tema)
                 .ThenInclude(t => t.Asignatura)
+                .ThenInclude(t => t.Curso)
                 .FirstOrDefaultAsync(c => c.IdContenido == id);
         }
 
@@ -706,6 +769,19 @@ namespace MyVirtualAcademy.Repositories
             return true;
         }
 
+        private async Task<int> GetMaxIdEntregaTareasAsync()
+        {
+            if (this.context.EntregasTareas.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.EntregasTareas.MaxAsync
+                    (x => x.IdEntrega) + 1;
+            }
+        }
+
         public async Task<bool> GuardarEntregaAsync(int contenidoId, int usuarioId, string comentario, IFormFile archivo)
         {
             try
@@ -730,6 +806,7 @@ namespace MyVirtualAcademy.Repositories
                 // Guardar información en la base de datos
                 var entrega = new EntregaTarea
                 {
+                    IdEntrega = await this.GetMaxIdEntregaTareasAsync(),
                     IdContenido = contenidoId,
                     IdEstudiante = usuarioId,
                     URLEntrega = $"/uploads/tareas/{contenidoId}/{fileName}",

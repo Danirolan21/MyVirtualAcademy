@@ -1,7 +1,19 @@
-﻿@model List<ViewAsignaturaUsuario>
+﻿@model List<AsignaturaUsuarioDTO>
 
 <style>
-
+    :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --secondary: #64748b;
+        --dark: #1e293b;
+        --light: #f8fafc;
+        --success: #22c55e;
+        --warning: #eab308;
+        --danger: #ef4444;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
 
     /* Main Content Area */
     main {
@@ -56,11 +68,51 @@
         }
 
     .course-image {
-        height: 160px;
-        background-color: #93c5fd;
-        background-size: cover;
-        background-position: center;
+        height: 140px;
+        position: relative;
+        overflow: hidden;
     }
+
+    .course-image-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+    }
+
+        .course-image-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 5px, transparent 6px), radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.15) 8px, transparent 9px), radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.1) 10px, transparent 11px), radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.15) 7px, transparent 8px), radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 9px, transparent 10px);
+            opacity: 0.6;
+        }
+
+    .course-book {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 3px;
+        z-index: 1;
+    }
+
+        .course-book::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2), 0 20px 0 rgba(0, 0, 0, 0.2), 0 30px 0 rgba(0, 0, 0, 0.2);
+        }
 
     .course-content {
         padding: 1.25rem;
@@ -79,8 +131,13 @@
         gap: 0.5rem;
         color: var(--text-muted);
         font-size: 0.875rem;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
     }
+
+        .course-info i {
+            width: 16px;
+            text-align: center;
+        }
 
     .course-progress {
         margin-top: 1rem;
@@ -106,175 +163,52 @@
         border-radius: 4px;
     }
 
-    /* Course Detail Layout */
-    .course-layout {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 1.5rem;
-    }
-
-    .course-sidebar {
-        background-color: white;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        box-shadow: var(--shadow);
-        align-self: start;
-        position: sticky;
-        top: 90px;
-    }
-
-    .sidebar-header {
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        font-size: 1.125rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        border-radius: 0.375rem;
-        margin: -0.5rem -0.5rem 0.5rem;
-    }
-
-        .sidebar-header.active {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: var(--primary);
-        }
-
-    .sidebar-content {
-        margin-bottom: 1rem;
-    }
-
-    .sidebar-item {
-        padding: 0.5rem 0.75rem;
-        border-radius: 0.375rem;
-        margin-bottom: 0.25rem;
-        cursor: pointer;
+    .course-dates {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.2s ease;
     }
 
-        .sidebar-item:hover {
-            background-color: rgba(37, 99, 235, 0.05);
-        }
-
-        .sidebar-item.active {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-    .course-main {
-        background-color: white;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-    }
-
-    .course-header {
-        margin-bottom: 1.5rem;
-    }
-
-        .course-header h1 {
-            font-size: 1.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-    .instructor-info {
+    .course-stats {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-color);
     }
 
-        .instructor-info img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-    .content-section {
-        margin-bottom: 2rem;
+    .course-stat {
+        text-align: center;
     }
 
-    .section-title {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .content-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: 0.5rem;
-        margin-bottom: 0.75rem;
-        transition: all 0.2s ease;
-    }
-
-        .content-item:hover {
-            background-color: var(--light);
-        }
-
-    .content-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(37, 99, 235, 0.1);
-        border-radius: 0.375rem;
-        margin-right: 1rem;
+    .course-stat-value {
+        font-weight: 600;
         color: var(--primary);
     }
 
-    .content-info {
-        flex: 1;
-    }
-
-    .content-title {
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-    }
-
-    .content-meta {
-        font-size: 0.875rem;
+    .course-stat-label {
+        font-size: 0.75rem;
         color: var(--text-muted);
     }
 
-    .content-status {
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
+    .course-actions {
+        margin-top: 1rem;
+        text-align: right;
     }
 
-    .status-done {
-        background-color: rgba(34, 197, 94, 0.1);
-        color: var(--success);
-    }
-
-    .status-pending {
-        background-color: rgba(100, 116, 139, 0.1);
-        color: var(--secondary);
-    }
-
-    /* Button Styles */
     .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0.5rem 1rem;
         border-radius: 0.375rem;
-        border: none;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        gap: 0.5rem;
+        text-decoration: none;
     }
 
     .btn-primary {
@@ -286,65 +220,115 @@
             background-color: var(--primary-hover);
         }
 
-    .btn-outline {
-        background-color: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--secondary);
+    .course-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-left: auto;
     }
 
-        .btn-outline:hover {
-            background-color: var(--light);
-            color: var(--dark);
-        }
-
-    .btn-success {
-        background-color: var(--success);
-        color: white;
+    .status-active {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: var(--success);
     }
 
-    .btn-sm {
-        padding: 0.25rem 0.75rem;
-        font-size: 0.875rem;
+    .status-inactive {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        color: #856404;
     }
 </style>
 
 <main class="container">
-    <!-- Course Listing View -->
-    <div id="courseListView">
-        <div class="tabs">
-            <div class="tab active">Mis cursos</div>
-        </div>
+    <div class="tabs">
+        <div class="tab active">Mis asignaturas</div>
+    </div>
 
-        @if (Model.Count() != 0){
-            <div class="courses-grid">
-                    @foreach (ViewAsignaturaUsuario asignatura in Model)
-                    {
-                        <div class="course-card">
-                            <div class="course-image" style="background-color: #60a5fa;"></div>
-                            <div class="course-content">
-                                <h3 class="course-title">@asignatura.NombreAsignatura</h3>
-                                <div class="course-info">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="m20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
-                                        <circle cx="12" cy="10" r="3"></circle>
-                                    </svg>
-                                    prof. maria garcía
-                                </div>
-                                <div class="course-progress">
-                                    <div class="progress-label">
-                                        <span>progress</span>
-                                        <span>75%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-value" style="width: 75%;"></div>
-                                    </div>
-                                </div>
+    @if (Model.Count > 0)
+    {
+        <div class="courses-grid">
+            @foreach (var asignatura in Model)
+            {
+                <div class="course-card">
+                    <div class="course-image">
+                        <div class="course-image-bg"></div>
+                        <div class="course-book"></div>
+                    </div>
+                    <div class="course-content">
+                        <div class="d-flex align-items-center">
+                            <h3 class="course-title">@asignatura.NombreAsignatura</h3>
+                            <span class="course-status @(asignatura.Estado == "Activo" ? "status-active" : "status-inactive")">
+                                @asignatura.Estado
+                            </span>
+                        </div>
+
+                        <div class="course-info">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>@asignatura.NombreCurso</span>
+                        </div>
+
+                        <div class="course-info">
+                            <i class="fas fa-user-tie"></i>
+                            <span>@asignatura.NombreProfesor</span>
+                        </div>
+
+                        <div class="course-dates">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>@asignatura.FechaInicio.ToString("dd/MM/yyyy") - @asignatura.FechaFin.ToString("dd/MM/yyyy")</span>
+                        </div>
+
+                        <div class="course-progress">
+                            <div class="progress-label">
+                                <span>Progreso</span>
+                                <span>@asignatura.Progreso.ToString("0.0")%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-value" style="width: @asignatura.Progreso%"></div>
                             </div>
                         </div>
-                    }
-            </div>
-        }
-        else {
-            <h5 class="rounded-2 bg-warning p-5">Actualmente no estas inscripto en ningun curso, si no es asi contacta con algun administrador.</h5>
-        }
-    </div>
+
+                        <div class="course-stats">
+                            <div class="course-stat">
+                                <div class="course-stat-value">@asignatura.NumeroTemas</div>
+                                <div class="course-stat-label">Temas</div>
+                            </div>
+                            <div class="course-stat">
+                                <div class="course-stat-value">
+                                    @{
+                                        var diasRestantes = (asignatura.FechaFin - DateTime.Now).Days;
+                                        @(diasRestantes > 0 ? diasRestantes : 0)
+                                    }
+                                </div>
+                                <div class="course-stat-label">Días restantes</div>
+                            </div>
+                        </div>
+
+                        <div class="course-actions">
+                            <a href="@Url.Action("DetallesAsignatura", "PersonalArea", new { idAsignatura = asignatura.IdAsignatura })" class="btn btn-primary">
+                                Ver asignatura <i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-info-circle fa-2x mb-3"></i>
+            <h3>No tienes asignaturas asignadas</h3>
+            <p>Actualmente no estás matriculado en ninguna asignatura. Contacta con tu administrador si crees que esto es un error.</p>
+        </div>
+    }
+</main>

@@ -61,7 +61,7 @@ namespace MyVirtualAcademy.Controllers
         }
 
 
-        [AuthorizeUsuarios(Policy = "AdminOnly")]
+        [AuthorizeUsuarios]
         public async Task<IActionResult> DetallesAsignatura(int idAsignatura)
         {
             AsignaturaDetalleViewModel model = await this.repo.GetDetallesAsignatura(idAsignatura);
@@ -244,7 +244,7 @@ namespace MyVirtualAcademy.Controllers
         public async Task<IActionResult> Estudiante()
         {
             var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            List<ViewAsignaturaUsuario> asignaturas =
+            List<AsignaturaUsuarioDTO> asignaturas =
                 await this.repo.GetAsignaturasByUserAsync(usuarioId);
             return View(asignaturas);
         }

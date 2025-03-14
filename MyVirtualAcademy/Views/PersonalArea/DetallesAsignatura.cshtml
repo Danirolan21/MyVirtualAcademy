@@ -538,9 +538,18 @@
     <input type="hidden" id="idAsignatura" value="@Model.IdAsignatura" />
     <!-- Sidebar izquierdo (menú) -->
     <div class="left-sidebar">
-        @if (ViewData["IdCurso"] != null)
+        @if(Context.User.IsInRole("Administrador") == true){
+            @if (ViewData["IdCurso"] != null)
+            {
+                <a asp-controller="PersonalArea" asp-action="DetallesCurso" asp-route-idCurso="@ViewData["IDCURSO"]"
+                   class="d-inline-flex align-items-center m-4 mb-4 text-decoration-none text-dark fw-bold fw-500">
+                    <img src="~/assets/iconos/back.png" width="30" height="30" class="me-2" /> Volver al curso
+                </a>
+            }
+        }
+        else
         {
-            <a asp-controller="PersonalArea" asp-action="DetallesCurso" asp-route-idCurso="@ViewData["IDCURSO"]"
+            <a href="javascript:history.back()"
                class="d-inline-flex align-items-center m-4 mb-4 text-decoration-none text-dark fw-bold fw-500">
                 <img src="~/assets/iconos/back.png" width="30" height="30" class="me-2" /> Volver al curso
             </a>
