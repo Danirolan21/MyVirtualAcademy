@@ -1,0 +1,243 @@
+﻿@* @model ExamenViewModel
+
+@section Styles {
+    <style>
+        .exam-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .info-item i {
+                min-width: 20px;
+                text-align: center;
+            }
+
+        .exam-status {
+            border-left: 5px solid;
+            border-color: var(--bs-primary);
+        }
+
+            .exam-status.bg-danger {
+                border-color: var(--bs-danger);
+            }
+    </style>
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/Home">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="/Asignatura/Detalle/@Model.IdAsignatura">@Model.NombreAsignatura</a></li>
+                    <li class="breadcrumb-item"><a href="/Tema/Detalle/@Model.IdTema">@Model.NombreTema</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Titulo</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clipboard-check me-3 fs-3"></i>
+                        <h4 class="mb-0">@Model.Titulo</h4>
+                    </div>
+                    <span class="badge bg-light text-primary">@Model.Tipo</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="exam-info">
+                                <div class="info-item">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    <span>Fecha de entrega: <strong>@Model.FechaEntrega.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-clock text-primary"></i>
+                                    <span>Duración: <strong>@Model.DuracionMinutos minutos</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-star text-primary"></i>
+                                    <span>Puntuación máxima: <strong>@Model.PuntuacionMaxima puntos</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="exam-info">
+                                <div class="info-item">
+                                    <i class="fas fa-redo-alt text-primary"></i>
+                                    <span>Intentos permitidos: <strong>@Model.IntentosMaximos</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-exclamation-triangle text-primary"></i>
+                                    <span>Penalización por error: <strong>@Model.PenalizacionIncorrecta puntos</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-chart-line text-primary"></i>
+                                    <span>Publicación de notas: <strong>@Model.FechaPublicacionNotas.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Descripción</h5>
+                        <p>@Model.Descripcion</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.UrlContenido))
+                    {
+                        <div class="mb-4">
+                            <h5>Material complementario</h5>
+                            <div class="d-grid gap-2 col-md-6 mx-auto">
+                                <a href="@Model.UrlContenido" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-2"></i>Ver material adjunto
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="exam-status p-4 mb-4 rounded-3 @(DateTime.Now > Model.FechaEntrega ? "bg-danger text-white" : "bg-light")">
+                        <div class="d-flex align-items-center">
+                            @if (DateTime.Now > Model.FechaEntrega)
+                            {
+                                <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="mb-1">Plazo finalizado</h5>
+                                    <p class="mb-0">El plazo para realizar este @(Model.Tipo.ToLower()) ha finalizado.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <i class="fas fa-hourglass-half fa-2x me-3 text-primary"></i>
+                                <div>
+                                    <h5 class="mb-1">Tiempo restante</h5>
+                                    <p class="mb-0" id="countdown">Calculando...</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="exam-attempts mb-4">
+                        <h5>Tus intentos</h5>
+                        @if (Model.IntentosRealizados != null && Model.IntentosRealizados.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Fecha</th>
+                                            <th>Puntuación</th>
+                                            <th>Estado</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var intento in Model.IntentosRealizados)
+                                        {
+                                            <tr>
+                                                <td>@intento.NumeroIntento</td>
+                                                <td>@intento.FechaRealizacion.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>@intento.Puntuacion / @Model.PuntuacionMaxima</td>
+                                                <td>
+                                                    @if (intento.Completado)
+                                                    {
+                                                        <span class="badge bg-success">Completado</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark">Incompleto</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <a href="/Examen/Revision/@intento.IdIntento" class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-eye"></i> Ver
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>Aún no has realizado ningún intento.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                        <div>
+                            @if (Model.IntentosDisponibles > 0 && DateTime.Now < Model.FechaEntrega)
+                            {
+                                <a href="/Examen/Realizar/@Model.IdContenido" class="btn btn-primary">
+                                    <i class="fas fa-play-circle me-2"></i>Comenzar @Model.Tipo.ToLower()
+                                </a>
+                            }
+                            else if (Model.IntentosDisponibles <= 0)
+                            {
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-ban me-2"></i>No quedan intentos
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-clock me-2"></i>Plazo finalizado
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Función para actualizar el contador de tiempo restante
+        function updateCountdown() {
+            const fechaEntrega = new Date('@Model.FechaEntrega.ToString("yyyy-MM-ddTHH:mm:ss")');
+            const ahora = new Date();
+
+            if (fechaEntrega > ahora) {
+                const diff = fechaEntrega - ahora;
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                let countdownText = "";
+                if (days > 0) countdownText += `${days} día${days > 1 ? 's' : ''}, `;
+                countdownText += `${hours}h ${minutes}m ${seconds}s`;
+
+                document.getElementById('countdown').innerText = countdownText;
+            } else {
+                document.getElementById('countdown').innerText = "Plazo finalizado";
+                clearInterval(countdownInterval);
+                window.location.reload();
+            }
+        }
+
+        // Actualizar cada segundo
+        updateCountdown();
+        const countdownInterval = setInterval(updateCountdown, 1000);
+    </script>
+} *@

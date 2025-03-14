@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyVirtualAcademy.Filters;
 using MyVirtualAcademy.Helper;
@@ -242,9 +243,9 @@ namespace MyVirtualAcademy.Controllers
         [AuthorizeUsuarios]
         public async Task<IActionResult> Estudiante()
         {
-            int? userId = SessionHelper.GetUserId(HttpContext);
+            var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             List<ViewAsignaturaUsuario> asignaturas =
-                await this.repo.GetAsignaturasByUserAsync(userId.Value);
+                await this.repo.GetAsignaturasByUserAsync(usuarioId);
             return View(asignaturas);
         }
 
@@ -268,6 +269,72 @@ namespace MyVirtualAcademy.Controllers
                     "Enlace" => RedirectToAction("DetalleEnlace", new { id }),
                     _ => NotFound()
                 };
+            }
+
+            public async Task<IActionResult> DetalleTarea(int id)
+            {
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var tarea = await this.repo.ObtenerTareaDetalleAsync(id, usuarioId);
+        
+                if (tarea == null)
+                    return NotFound();
+            
+                return View(tarea);
+            }
+
+            [HttpPost]
+            public async Task<IActionResult> Editar(int id, TareaEditViewModel model)
+            {
+                    // Procesar el archivo si se ha subido uno nuevo
+                    string urlContenido = null;
+                    if (model.ContenidoArchivo != null && model.ContenidoArchivo.Length > 0)
+                    {
+                        // Implementar lógica para guardar el archivo
+                        urlContenido = await GuardarArchivoAsync(model.ContenidoArchivo, "tareas");
+                    }
+
+                    await this.repo.ActualizarTareaAsync(id, model, urlContenido);
+
+                    TempData["Mensaje"] = "La tarea se ha actualizado correctamente.";
+                    TempData["TipoMensaje"] = "success";
+
+                return RedirectToAction("DetalleTarea", new { id });
+            }
+
+            private async Task<string> GuardarArchivoAsync(IFormFile archivo, string carpeta)
+            {
+                // Implementar lógica para guardar el archivo en el servidor o en la nube
+                var nombreArchivo = $"{Guid.NewGuid()}_{Path.GetFileName(archivo.FileName)}";
+                var rutaArchivo = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "archivos", carpeta, nombreArchivo);
+    
+                Directory.CreateDirectory(Path.GetDirectoryName(rutaArchivo));
+    
+                using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                {
+                    await archivo.CopyToAsync(stream);
+                }
+    
+                return $"{nombreArchivo}";
+            }
+
+            [HttpPost]
+            public async Task<IActionResult> Entregar(int id, string comentarioEstudiante, IFormFile archivoEntrega)
+            {
+                if (archivoEntrega == null)
+                {
+                    TempData["Error"] = "Debes adjuntar un archivo para realizar la entrega.";
+                    return RedirectToAction("DetalleTarea", new { id });
+                }
+
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                bool resultado = await this.repo.GuardarEntregaAsync(id, usuarioId, comentarioEstudiante, archivoEntrega);
+
+                if (resultado)
+                    TempData["Success"] = "Tu entrega se ha realizado correctamente.";
+                else
+                    TempData["Error"] = "Ha ocurrido un error al procesar tu entrega. Inténtalo de nuevo.";
+
+                return RedirectToAction("DetalleTarea", new { id });
             }
 
             public async Task<IActionResult> DetalleRecurso(int id, string tipo)

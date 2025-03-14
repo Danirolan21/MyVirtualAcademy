@@ -1,0 +1,350 @@
+﻿@model TareaViewModel
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/Home">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="/Asignatura/Detalle/@Model.IdAsignatura">@Model.NombreAsignatura</a></li>
+                    <li class="breadcrumb-item"><a href="/Tema/Detalle/@Model.IdTema">@Model.NombreTema</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Titulo</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tasks me-3 fs-3"></i>
+                        <h4 class="mb-0">@Model.Titulo</h4>
+                    </div>
+                    <span class="badge bg-light text-success">Tarea</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="task-info">
+                                <div class="info-item">
+                                    <i class="fas fa-calendar-alt text-success"></i>
+                                    <span>Fecha de entrega: <strong>@Model.FechaEntrega.ToString("dd/MM/yyyy HH:mm")</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-star text-success"></i>
+                                    <span>Puntuación máxima: <strong>@Model.PuntuacionMaxima puntos</strong></span>
+                                </div>
+                                @if (Model.PermiteEntregaTardia)
+                                {
+                                    <div class="info-item">
+                                        <i class="fas fa-exclamation-triangle text-success"></i>
+                                        <span>Entrega tardía: <strong>Permitida con penalización</strong></span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="task-status p-3 rounded-3 @(DateTime.Now > Model.FechaEntrega ? "bg-warning text-dark" : "bg-light")">
+                                <div class="d-flex align-items-center">
+                                    @if (DateTime.Now > Model.FechaEntrega)
+                                    {
+                                        <i class="fas fa-exclamation-circle me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Plazo finalizado</h6>
+                                            <small>La entrega fuera de plazo podría tener penalización</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-hourglass-half me-3 text-success"></i>
+                                        <div>
+                                            <h6 class="mb-0">Tiempo restante</h6>
+                                            <small id="countdown">Calculando...</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Descripción</h5>
+                        <p>@Model.Descripcion</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.UrlContenido))
+                    {
+                        <div class="mb-4">
+                            <h5>Material de la tarea</h5>
+                            <div class="document-preview p-3 bg-light rounded mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-alt text-success fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="documento-nombre mb-1">@(System.IO.Path.GetFileName(Model.UrlContenido))</h6>
+                                        <small class="text-muted">Click en el botón para descargar las instrucciones</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 col-md-6 mx-auto">
+                                <a href="/uploads/contents/@Model.UrlContenido" download class="btn btn-outline-success">
+                                    <i class="fas fa-download me-2"></i>Descargar instrucciones
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="entrega-section mb-4">
+                        <h5>Tu entrega</h5>
+                        @if (Model.Entrega != null)
+                        {
+                            <div class="card border-success mb-3">
+                                <div class="card-header bg-success bg-opacity-10">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Entregado el:</strong> @Model.Entrega.FechaEntrega.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                        <span class="badge @(Model.Entrega.FechaEntrega > Model.FechaEntrega ? "bg-warning text-dark" : "bg-success")">
+                                            @(Model.Entrega.FechaEntrega > Model.FechaEntrega ? "Entrega tardía" : "Entrega a tiempo")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.Entrega.Calificacion.HasValue)
+                                    {
+                                        <div class="row mb-3">
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <span class="fs-5">Calificación:</span>
+                                                    </div>
+                                                    <div class="progress flex-grow-1" style="height: 25px;">
+                                                        <div class="progress-bar @(Model.Entrega.Calificacion >= Model.PuntuacionAprobado ? "bg-success" : "bg-danger")"
+                                                             role="progressbar"
+                                                             style="width: @(Model.Entrega.Calificacion / Model.PuntuacionMaxima * 100)%;">
+                                                            @Model.Entrega.Calificacion / @Model.PuntuacionMaxima
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <h6>Comentarios del profesor:</h6>
+                                            <p class="p-3 bg-light rounded">@(string.IsNullOrEmpty(Model.Entrega.Comentarios) ? "Sin comentarios" : Model.Entrega.Comentarios)</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>Tu entrega está pendiente de calificación.
+                                        </div>
+                                    }
+
+                                    <div class="mt-3">
+                                        <h6>Archivo entregado:</h6>
+                                        <div class="list-group">
+                                            <a href="@Model.Entrega.URLEntrega" download class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <i class="fas fa-file me-2"></i>@System.IO.Path.GetFileName(Model.Entrega.URLEntrega)
+                                                </div>
+                                                <span class="badge bg-secondary rounded-pill">Descargar</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Aún no has realizado ninguna entrega.
+                            </div>
+
+                            <div class="mt-4">
+                                <form id="formEntrega" action="/PersonalArea/Entregar/@Model.IdContenido" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="comentarioEstudiante" class="form-label">Comentarios (opcional)</label>
+                                        <textarea class="form-control" id="comentarioEstudiante" name="comentarioEstudiante" rows="3"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="archivoEntrega" class="form-label">Archivo para entregar</label>
+                                        <input class="form-control" type="file" id="archivoEntrega" name="archivoEntrega">
+                                        <div class="form-text">Si necesitas entregar múltiples archivos, comprímelos en un archivo ZIP. Tamaño máximo: 10MB.</div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-paper-plane me-2"></i>Realizar entrega
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                        <div>
+                            @if (Model.Entrega != null && Model.FechaEntrega.AddDays(7) != null)
+                            {
+                                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#nuevaEntregaModal">
+                                    <i class="fas fa-redo me-2"></i>Nueva entrega
+                                </button>
+                            }
+                            @if (User.IsInRole("Administrador") || User.IsInRole("Profesor"))
+                            {
+                                <button type="button" class="btn btn-outline-success ms-2" data-bs-toggle="modal" data-bs-target="#editarTareaModal">
+                                    <i class="fas fa-edit me-1"></i>Editar
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nueva entrega -->
+<div class="modal fade" id="nuevaEntregaModal" tabindex="-1" aria-labelledby="nuevaEntregaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nuevaEntregaModalLabel">Nueva entrega</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i><strong>¡Atención!</strong> Ya has realizado una entrega para esta tarea.
+                    Realizar una nueva entrega reemplazará la anterior y podría afectar tu calificación si ya ha sido evaluada.
+                </div>
+                <form id="formNuevaEntrega" action="/Tarea/NuevaEntrega/@Model.IdContenido" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="comentarioEstudianteNuevo" class="form-label">Comentarios (opcional)</label>
+                        <textarea class="form-control" id="comentarioEstudianteNuevo" name="comentarioEstudiante" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="archivoEntregaNuevo" class="form-label">Archivo para entregar</label>
+                        <input class="form-control" type="file" id="archivoEntregaNuevo" name="archivoEntrega">
+                        <div class="form-text">Si necesitas entregar múltiples archivos, comprímelos en un archivo ZIP. Tamaño máximo: 10MB.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNuevaEntrega" class="btn btn-warning">Realizar nueva entrega</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar tarea -->
+<div class="modal fade" id="editarTareaModal" tabindex="-1" aria-labelledby="editarTareaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="editarTareaModalLabel"><i class="fas fa-edit me-2"></i>Editar Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarTarea" action="/PersonalArea/Editar/@Model.IdContenido" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="editTitulo" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="editTitulo" name="Titulo" value="@Model.Titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="editDescripcion" name="Descripcion" rows="4" required>@Model.Descripcion</textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editFechaEntrega" class="form-label">Fecha de entrega</label>
+                            <input type="datetime-local" class="form-control" id="editFechaEntrega" name="FechaEntrega"
+                                   value="@Model.FechaEntrega.ToString("yyyy-MM-ddTHH:mm")" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPuntuacionMaxima" class="form-label">Puntuación máxima</label>
+                            <input type="number" class="form-control" id="editPuntuacionMaxima" name="PuntuacionMaxima"
+                                   value="@Model.PuntuacionMaxima" min="0" step="0.5" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editPermiteEntregaTardia" name="PermiteEntregaTardia"
+                            @(Model.PermiteEntregaTardia ? "checked" : "")>
+                            <label class="form-check-label" for="editPermiteEntregaTardia">
+                                Permitir entregas tardías
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editContenido" class="form-label">Archivo de instrucciones (opcional)</label>
+                        <input class="form-control" type="file" id="editContenido" name="ContenidoArchivo">
+                        <div class="form-text">Deja en blanco para mantener el archivo actual. Tamaño máximo: 10MB.</div>
+
+                        @if (!string.IsNullOrEmpty(Model.UrlContenido))
+                        {
+                            <div class="mt-2">
+                                <span class="text-muted">Archivo actual: @System.IO.Path.GetFileName(Model.UrlContenido)</span>
+                            </div>
+                        }
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formEditarTarea" class="btn btn-success">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaEntrega = new Date('@Model.FechaEntrega.ToString("yyyy-MM-ddTHH:mm:ss")');
+            const fechaFormateada = fechaEntrega.toISOString().slice(0, 16);
+            document.getElementById('editFechaEntrega').value = fechaFormateada;
+        });
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+
+            // Verificar si el elemento existe antes de intentar modificarlo
+            if (!countdownElement) {
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const fechaEntrega = new Date('@Model.FechaEntrega.ToString("yyyy-MM-ddTHH:mm:ss")');
+            const ahora = new Date();
+
+            if (fechaEntrega > ahora) {
+                const diff = fechaEntrega - ahora;
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                let countdownText = "";
+                if (days > 0) countdownText += `${days} día${days > 1 ? 's' : ''}, `;
+                countdownText += `${hours}h ${minutes}m ${seconds}s`;
+
+                countdownElement.innerText = countdownText;
+            } else {
+                countdownElement.innerText = "Plazo finalizado";
+                clearInterval(countdownInterval);
+            }
+        }
+
+        // Iniciar el contador solo si existe el elemento
+        const countdownElement = document.getElementById('countdown');
+        if (countdownElement) {
+            updateCountdown();
+            const countdownInterval = setInterval(updateCountdown, 1000);
+        } else {
+            console.log("Elemento 'countdown' no encontrado en el DOM");
+        }
+    </script>
+}

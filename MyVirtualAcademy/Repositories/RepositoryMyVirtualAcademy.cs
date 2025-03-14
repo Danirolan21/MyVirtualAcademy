@@ -606,5 +606,319 @@ namespace MyVirtualAcademy.Repositories
         }
 
         #endregion
+
+        #region TAREAS
+
+        public async Task<TareaViewModel> ObtenerTareaDetalleAsync(int contenidoId, int usuarioId)
+        {
+            // Obtenemos el contenido con sus relaciones
+            var contenido = await this.context.Contenidos
+                .Include(c => c.Tema)
+                    .ThenInclude(t => t.Asignatura)
+                .FirstOrDefaultAsync(c => c.IdContenido == contenidoId);
+
+            if (contenido == null)
+                return null;
+
+            // Obtenemos la entrega del usuario si existe
+            var entrega = await this.context.EntregasTareas
+                .Where(e => e.IdContenido == contenidoId && e.IdEstudiante == usuarioId)
+                .OrderByDescending(e => e.FechaEntrega)
+                .FirstOrDefaultAsync();
+
+            // Obtenemos la calificación si existe
+            var calificacion = entrega != null ?
+                await this.context.HistorialCalificaciones
+                    .Where(c => c.IdContenido == contenidoId && c.IdEstudiante == usuarioId)
+                    .OrderByDescending(c => c.FechaCalificacion)
+                    .FirstOrDefaultAsync() : null;
+
+            // Obtenemos comentarios si existen
+            string comentarios = null;
+            if (calificacion != null)
+            {
+                var comentario = await this.context.ComentariosCalificaciones
+                    .Where(c => c.IdCalificacion == calificacion.IdCalificacion)
+                    .OrderByDescending(c => c.FechaComentario)
+                    .FirstOrDefaultAsync();
+
+                if (comentario != null)
+                    comentarios = comentario.Comentario;
+            }
+
+            // Construimos el ViewModel
+            var tareaViewModel = new TareaViewModel
+            {
+                IdContenido = contenido.IdContenido,
+                IdTema = contenido.IdTema,
+                NombreTema = contenido.Tema.Nombre,
+                IdAsignatura = contenido.Tema.IdAsignatura,
+                NombreAsignatura = contenido.Tema.Asignatura.Nombre,
+                Titulo = contenido.Titulo,
+                Descripcion = contenido.Descripcion,
+                UrlContenido = contenido.URLContenido,
+                FechaEntrega = contenido.FechaEntrega ?? DateTime.Now.AddDays(7), // Default por si no tiene fecha
+                PuntuacionMaxima = contenido.PuntuacionMaxima ?? 10, // Default por si no tiene puntuación
+                PuntuacionAprobado = (contenido.PuntuacionMaxima ?? 10) * 0.6m, // 60% para aprobar
+                PermiteEntregaTardia = true // Esto podría configurarse a nivel de curso o contenido
+            };
+
+            // Si hay entrega, agregamos datos al ViewModel
+            if (entrega != null)
+            {
+                tareaViewModel.Entrega = new EntregaTareaViewModel
+                {
+                    IdEntrega = entrega.IdEntrega,
+                    URLEntrega = entrega.URLEntrega,
+                    FechaEntrega = entrega.FechaEntrega,
+                    Estado = entrega.Estado,
+                    Calificacion = calificacion?.Calificacion,
+                    Comentarios = comentarios
+                };
+            }
+
+            return tareaViewModel;
+        }
+
+        public async Task<bool> ActualizarTareaAsync(int contenidoId, TareaEditViewModel model, string urlContenido = null)
+        {
+            var contenido = await this.context.Contenidos
+                .FirstOrDefaultAsync(c => c.IdContenido == contenidoId);
+
+            if (contenido == null)
+                return false;
+
+            contenido.Titulo = model.Titulo;
+            contenido.Descripcion = model.Descripcion;
+            contenido.FechaEntrega = model.FechaEntrega;
+            contenido.PuntuacionMaxima = model.PuntuacionMaxima;
+
+            // Solo actualizar la URL si se ha proporcionado una nueva
+            if (!string.IsNullOrEmpty(urlContenido))
+            {
+                contenido.URLContenido = urlContenido;
+            }
+
+            // Aquí podrías actualizar la propiedad PermiteEntregaTardia si la tienes en tu modelo de datos
+            // contenido.PermiteEntregaTardia = model.PermiteEntregaTardia;
+
+            await this.context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> GuardarEntregaAsync(int contenidoId, int usuarioId, string comentario, IFormFile archivo)
+        {
+            try
+            {
+                if (archivo == null || archivo.Length == 0)
+                    return false;
+
+                // Verificar tamaño máximo (10MB)
+                if (archivo.Length > 10 * 1024 * 1024)
+                    return false;
+
+                // Generar nombre único para el archivo
+                string fileName = $"{usuarioId}_{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(archivo.FileName)}";
+                string filePath = this.helperPath.MapPath(fileName, Folders.contents);
+
+                // Guardar archivo
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await archivo.CopyToAsync(stream);
+                }
+
+                // Guardar información en la base de datos
+                var entrega = new EntregaTarea
+                {
+                    IdContenido = contenidoId,
+                    IdEstudiante = usuarioId,
+                    URLEntrega = $"/uploads/tareas/{contenidoId}/{fileName}",
+                    FechaEntrega = DateTime.Now,
+                    Estado = "Pendiente"
+                };
+
+                this.context.EntregasTareas.Add(entrega);
+                await this.context.SaveChangesAsync();
+
+                // Actualizar progreso del estudiante
+                await ActualizarProgresoEstudianteAsync(contenidoId, usuarioId);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ActualizarEntregaAsync(int contenidoId, int usuarioId, string comentario, IFormFile archivo)
+        {
+            try
+            {
+                // Verificar si existe una entrega previa
+                var entregaPrevia = await this.context.EntregasTareas
+                    .Where(e => e.IdContenido == contenidoId && e.IdEstudiante == usuarioId)
+                    .OrderByDescending(e => e.FechaEntrega)
+                    .FirstOrDefaultAsync();
+
+                if (entregaPrevia == null)
+                    return await GuardarEntregaAsync(contenidoId, usuarioId, comentario, archivo);
+
+                if (archivo == null || archivo.Length == 0)
+                    return false;
+
+                // Verificar tamaño máximo (10MB)
+                if (archivo.Length > 10 * 1024 * 1024)
+                    return false;
+
+                // Generar nombre único para el archivo
+                string fileName = $"{usuarioId}_{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(archivo.FileName)}";
+                string filePath = this.helperPath.MapPath(fileName, Folders.contents);
+
+                // Guardar archivo
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await archivo.CopyToAsync(stream);
+                }
+
+                // Actualizar información en la base de datos
+                entregaPrevia.URLEntrega = $"/uploads/tareas/{contenidoId}/{fileName}";
+                entregaPrevia.FechaEntrega = DateTime.Now;
+                entregaPrevia.Estado = "Pendiente";
+
+                await this.context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private async Task ActualizarProgresoEstudianteAsync(int contenidoId, int usuarioId)
+        {
+            // Buscar inscripción del estudiante
+            var contenido = await this.context.Contenidos
+                .Include(c => c.Tema)
+                    .ThenInclude(t => t.Asignatura)
+                .FirstOrDefaultAsync(c => c.IdContenido == contenidoId);
+
+            if (contenido == null)
+                return;
+
+            // Buscar inscripción en el curso correspondiente
+            var inscripcion = await this.context.Inscripciones
+                .FirstOrDefaultAsync(i => i.IdCurso == contenido.Tema.Asignatura.IdCurso &&
+                                         i.IdEstudiante == usuarioId);
+
+            if (inscripcion == null)
+                return;
+
+            // Verificar si ya existe un registro de progreso
+            var progreso = await this.context.ProgresoInscripciones
+                .FirstOrDefaultAsync(p => p.IdInscripcion == inscripcion.IdInscripcion &&
+                                        p.IdContenido == contenidoId);
+
+            if (progreso == null)
+            {
+                // Crear nuevo registro de progreso
+                progreso = new ProgresoInscripcion
+                {
+                    IdInscripcion = inscripcion.IdInscripcion,
+                    IdContenido = contenidoId,
+                    Completo = true,
+                    FechaCompletado = DateTime.Now
+                };
+                this.context.ProgresoInscripciones.Add(progreso);
+            }
+            else
+            {
+                // Actualizar registro existente
+                progreso.Completo = true;
+                progreso.FechaCompletado = DateTime.Now;
+            }
+
+            // Actualizar porcentaje de curso completado
+            await ActualizarPorcentajeCursoAsync(inscripcion.IdInscripcion);
+
+            await this.context.SaveChangesAsync();
+        }
+
+        private async Task ActualizarPorcentajeCursoAsync(int inscripcionId)
+        {
+            // Obtener todos los contenidos del curso
+            var inscripcion = await this.context.Inscripciones
+                .FirstOrDefaultAsync(i => i.IdInscripcion == inscripcionId);
+
+            if (inscripcion == null)
+                return;
+
+            // Obtener todos los contenidos del curso
+            var contenidos = await this.context.Contenidos
+                .Include(c => c.Tema)
+                    .ThenInclude(t => t.Asignatura)
+                .Where(c => this.context.Asignaturas
+                    .Where(a => a.IdCurso == inscripcion.IdCurso)
+                    .Select(a => a.IdAsignatura)
+                    .Contains(c.Tema.IdAsignatura))
+                .ToListAsync();
+
+            // Obtener todos los contenidos completados
+            var completados = await this.context.ProgresoInscripciones
+                .Where(p => p.IdInscripcion == inscripcionId && p.Completo)
+                .Select(p => p.IdContenido)
+                .ToListAsync();
+
+            // Calcular porcentaje
+            decimal totalContenidos = contenidos.Count;
+            decimal completadosCount = completados.Count;
+            decimal porcentaje = totalContenidos > 0 ? (completadosCount / totalContenidos) * 100 : 0;
+
+            // Actualizar porcentaje en la inscripción
+            inscripcion.PorcentajeCompletado = porcentaje;
+            await this.context.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region EXAMENES
+
+        //public async Task<Contenido?> ObtenerExamenPorIdAsync(int id)
+        //{
+        //    return await this.context.Contenidos
+        //        .Include(c => c.Tema)
+        //        .ThenInclude(t => t.Asignatura)
+        //        .Include(c => c.Examen)
+        //        .FirstOrDefaultAsync(c => c.IdContenido == id && c.Tipo == "Examen");
+        //}
+
+        //public async Task<List<IntentoViewModel>> ObtenerIntentosUsuarioAsync(int idExamen, int idUsuario)
+        //{
+        //    return await this.context.ExamenesUsuarios
+        //        .Where(e => e.IdContenido == idExamen && e.IdEstudiante == idUsuario)
+        //        .OrderByDescending(e => e.Fecha_Inicio)
+        //        .Select(e => new IntentoViewModel
+        //        {
+        //            ID_Intento = e.ID_Intento,
+        //            Fecha_Inicio = e.Fecha_Inicio,
+        //            Fecha_Fin = e.Fecha_Fin,
+        //            Completado = e.Fecha_Fin.HasValue,
+        //            Duracion = e.Fecha_Fin.HasValue ? (e.Fecha_Fin.Value - e.Fecha_Inicio).TotalMinutes : 0
+        //        })
+        //        .ToListAsync();
+        //}
+
+        //public async Task<decimal?> ObtenerCalificacionUsuarioAsync(int idExamen, int idUsuario)
+        //{
+        //    var calificacion = await this.context.ExamenesUsuarios
+        //        .Where(e => e.IdContenido == idExamen && e.IdEstudiante == idUsuario)
+        //        .OrderByDescending(e => e.FechaCalificacion)
+        //        .Select(e => e.Calificacion)
+        //        .FirstOrDefaultAsync();
+
+        //    return calificacion;
+        //}
+
+        #endregion
     }
 }
