@@ -15,5 +15,6 @@
         public decimal PuntuacionAprobado { get; set; }
         public bool PermiteEntregaTardia { get; set; }
         public EntregaTareaViewModel Entrega { get; set; }
+        public List<EntregaTareaViewModel> Entregas { get; set; }
     }
 }

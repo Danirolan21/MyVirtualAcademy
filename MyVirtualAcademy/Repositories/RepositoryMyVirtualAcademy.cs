@@ -573,10 +573,10 @@ namespace MyVirtualAcademy.Repositories
         public async Task<Contenido> ObtenerContenidoPorIdAsync(int id)
         {
             return await this.context.Contenidos
-                .Include(c => c.Tema)
-                .ThenInclude(t => t.Asignatura)
-                .ThenInclude(t => t.Curso)
-                .FirstOrDefaultAsync(c => c.IdContenido == id);
+        .Include(c => c.Tema)
+        .ThenInclude(t => t.Asignatura)
+        .ThenInclude(t => t.Curso)
+        .FirstOrDefaultAsync(c => c.IdContenido == id);
         }
 
         public async Task<bool> UsuarioTieneAccesoAsync(int idContenido, int usuarioId, bool esAdmin)
@@ -743,6 +743,106 @@ namespace MyVirtualAcademy.Repositories
             return tareaViewModel;
         }
 
+        public async Task<List<EntregaTareaViewModel>> ObtenerEntregasTareaAsync(int contenidoId)
+        {
+            var entregas = await this.context.EntregasTareas
+                .Where(e => e.IdContenido == contenidoId)
+                .OrderByDescending(e => e.FechaEntrega)
+                .Select(e => new EntregaTareaViewModel
+                {
+                    IdEntrega = e.IdEntrega,
+                    IdEstudiante = e.IdEstudiante,
+                    NombreEstudiante = this.context.Usuarios
+                        .Where(u => u.IdUsuario == e.IdEstudiante)
+                        .Select(u => u.Nombre + " " + u.Apellidos)
+                        .FirstOrDefault(),
+                    URLEntrega = e.URLEntrega,
+                    FechaEntrega = e.FechaEntrega,
+                    Estado = e.Estado,
+                    Calificacion = this.context.HistorialCalificaciones
+                        .Where(c => c.IdContenido == contenidoId && c.IdEstudiante == e.IdEstudiante)
+                        .OrderByDescending(c => c.FechaCalificacion)
+                        .Select(c => c.Calificacion)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return entregas;
+        }
+
+        public async Task<int> GuardarCalificacionAsync(int idEntrega, int idEstudiante, int idContenido,
+                decimal calificacion, string comentarios, int idProfesor)
+        {
+            // Obtener nuevo ID para la calificación
+            int idCalificacion = await GetMaxIdHistorialCalificacionesAsync();
+
+            // Crear y guardar la calificación
+            var nuevaCalificacion = new HistorialCalificacion
+            {
+                IdCalificacion = idCalificacion,
+                IdContenido = idContenido,
+                IdEstudiante = idEstudiante,
+                Calificacion = calificacion,
+                FechaCalificacion = DateTime.Now,
+                IdProfesorCalificador = idProfesor
+            };
+
+            this.context.HistorialCalificaciones.Add(nuevaCalificacion);
+            await this.context.SaveChangesAsync();
+
+            // Si hay comentarios, guardarlos
+            if (!string.IsNullOrEmpty(comentarios))
+            {
+                int idComentario = await GetMaxIdComentariosCalificacionesAsync();
+
+                var nuevoComentario = new ComentarioCalificacion
+                {
+                    IdComentario = idComentario,
+                    IdCalificacion = idCalificacion,
+                    IdAutor = idProfesor,
+                    Comentario = comentarios,
+                    FechaComentario = DateTime.Now
+                };
+
+                this.context.ComentariosCalificaciones.Add(nuevoComentario);
+                await this.context.SaveChangesAsync();
+            }
+
+            // Actualizar el estado de la entrega
+            var entrega = await this.context.EntregasTareas.FindAsync(idEntrega);
+            if (entrega != null)
+            {
+                entrega.Estado = "Revisado";
+                await this.context.SaveChangesAsync();
+            }
+
+            return idCalificacion;
+        }
+
+        private async Task<int> GetMaxIdHistorialCalificacionesAsync()
+        {
+            if (!await this.context.HistorialCalificaciones.AnyAsync())
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.HistorialCalificaciones.MaxAsync(x => x.IdCalificacion) + 1;
+            }
+        }
+
+        private async Task<int> GetMaxIdComentariosCalificacionesAsync()
+        {
+            if (!await this.context.ComentariosCalificaciones.AnyAsync())
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.ComentariosCalificaciones.MaxAsync(x => x.IdComentario) + 1;
+            }
+        }
+
         public async Task<bool> ActualizarTareaAsync(int contenidoId, TareaEditViewModel model, string urlContenido = null)
         {
             var contenido = await this.context.Contenidos
@@ -809,7 +909,7 @@ namespace MyVirtualAcademy.Repositories
                     IdEntrega = await this.GetMaxIdEntregaTareasAsync(),
                     IdContenido = contenidoId,
                     IdEstudiante = usuarioId,
-                    URLEntrega = $"/uploads/tareas/{contenidoId}/{fileName}",
+                    URLEntrega = fileName,
                     FechaEntrega = DateTime.Now,
                     Estado = "Pendiente"
                 };

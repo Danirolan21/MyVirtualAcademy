@@ -287,7 +287,7 @@
                                 </div>
                             </div>
                             <div class="course-actions">
-                                <a href="/Profesor/DetalleCurso/@curso.IdCurso" class="btn-view">
+                                <a asp-action="DetallesCurso" asp-controller="PersonalArea" asp-route-idCurso="@curso.IdCurso" class="btn-view">
                                     <i class="fas fa-eye"></i> Ver curso
                                 </a>
                             </div>
@@ -343,7 +343,7 @@
                                 </div>
                             </div>
                             <div class="course-actions">
-                                <a href="/Profesor/DetalleAsignatura/@asignatura.IdAsignatura" class="btn-view">
+                                <a asp-action="DetallesAsignatura" asp-controller="PersonalArea" asp-route-idAsignatura="@asignatura.IdAsignatura" class="btn-view">
                                     <i class="fas fa-eye"></i> Ver asignatura
                                 </a>
                             </div>

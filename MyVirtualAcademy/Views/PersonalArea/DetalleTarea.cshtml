@@ -179,7 +179,92 @@
                         }
                     </div>
                 </div>
+                @if (User.IsInRole("Administrador") || User.IsInRole("Profesor"))
+                {
+                    <div class="card-body border-top">
+                        <h5 class="mb-3">
+                            <i class="fas fa-list-check text-success me-2"></i>
+                            Entregas de estudiantes
+                        </h5>
 
+                        @if (Model.Entregas != null && Model.Entregas.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Estudiante</th>
+                                            <th>Entregado</th>
+                                            <th>Estado</th>
+                                            <th>Calificación</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var entrega in Model.Entregas)
+                                        {
+                                            <tr>
+                                                <td>@entrega.NombreEstudiante</td>
+                                                <td>
+                                                    @entrega.FechaEntrega.ToString("dd/MM/yyyy HH:mm")
+                                                    @if (entrega.FechaEntrega > Model.FechaEntrega)
+                                                    {
+                                                        <span class="badge bg-warning text-dark ms-2">Tardía</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (entrega.Calificacion != 0)
+                                                    {
+                                                        <span class="badge bg-success">Calificado</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Pendiente</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (entrega.Calificacion.HasValue)
+                                                    {
+                                                        <span class="fw-bold @(entrega.Calificacion >= Model.PuntuacionAprobado ? "text-success" : "text-danger")">
+                                                            @entrega.Calificacion / @Model.PuntuacionMaxima
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="/uploads/contents/@entrega.URLEntrega" download class="btn btn-sm btn-outline-primary" title="Descargar entrega">
+                                                            <i class="fas fa-download"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#calificarModal"
+                                                                data-id-entrega="@entrega.IdEntrega"
+                                                                data-id-estudiante="@entrega.IdEstudiante"
+                                                                data-nombre-estudiante="@entrega.NombreEstudiante"
+                                                                data-calificacion="@(entrega.Calificacion?.ToString() ?? "")"
+                                                                title="Calificar entrega">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>No hay entregas para esta tarea.
+                            </div>
+                        }
+                    </div>
+                }
                 <div class="card-footer bg-transparent">
                     <div class="d-flex justify-content-between">
                         <a href="javascript:history.back()" class="btn btn-outline-secondary">
@@ -300,6 +385,48 @@
     </div>
 </div>
 
+<!-- Modal para calificar entrega -->
+<div class="modal fade" id="calificarModal" tabindex="-1" aria-labelledby="calificarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="calificarModalLabel"><i class="fas fa-check-circle me-2"></i>Calificar Entrega</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCalificar" action="/PersonalArea/Calificar" method="POST">
+                    <input type="hidden" id="idEntrega" name="idEntrega" />
+                    <input type="hidden" id="idEstudiante" name="idEstudiante" />
+                    <input type="hidden" id="idContenido" name="idContenido" value="@Model.IdContenido" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Estudiante:</label>
+                        <p id="nombreEstudiante" class="form-control-plaintext"></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="calificacion" class="form-label">Calificación:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="calificacion" name="calificacion"
+                                   min="0" max="@Model.PuntuacionMaxima" step="0.1" required>
+                            <span class="input-group-text">/ @Model.PuntuacionMaxima</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="comentarios" class="form-label">Comentarios:</label>
+                        <textarea class="form-control" id="comentarios" name="comentarios" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formCalificar" class="btn btn-success">Guardar calificación</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -346,5 +473,24 @@
         } else {
             console.log("Elemento 'countdown' no encontrado en el DOM");
         }
+
+        // Inicializa el modal de calificación
+        document.addEventListener('DOMContentLoaded', function() {
+            const calificarModal = document.getElementById('calificarModal');
+            if (calificarModal) {
+                calificarModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const idEntrega = button.getAttribute('data-id-entrega');
+                    const idEstudiante = button.getAttribute('data-id-estudiante');
+                    const nombreEstudiante = button.getAttribute('data-nombre-estudiante');
+                    const calificacion = button.getAttribute('data-calificacion');
+
+                    document.getElementById('idEntrega').value = idEntrega;
+                    document.getElementById('idEstudiante').value = idEstudiante;
+                    document.getElementById('nombreEstudiante').textContent = nombreEstudiante;
+                    document.getElementById('calificacion').value = calificacion;
+                });
+            }
+        });
     </script>
 }

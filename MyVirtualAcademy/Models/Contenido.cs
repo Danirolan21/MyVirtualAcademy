@@ -29,8 +29,6 @@ namespace MyVirtualAcademy.Models
         public DateTime? FechaEntrega { get; set; }
         [Column("Puntuacion_Maxima")]
         public decimal? PuntuacionMaxima { get; set; }
-
-        public Examen Examen { get; set; }
     }
 
 }

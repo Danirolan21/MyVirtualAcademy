@@ -86,23 +86,20 @@ namespace MyVirtualAcademy.Controllers
         [HttpPost]
         public async Task<IActionResult> AñadirContenido(Contenido contenido, IFormFile ArchivoContenido, int idAsignatura)
         {
-            if (ArchivoContenido != null && ArchivoContenido.Length > 0)
+            string fileName = ArchivoContenido.FileName;
+            string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
+            // Determinar la carpeta según el tipo
+            string path = this.helperPath.MapPath(uniqueFileName, Folders.contents);
+
+            // Guardar el archivo
+            using (var stream = new FileStream(path, FileMode.Create))
             {
-                string fileName = ArchivoContenido.FileName;
-                string uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-
-                // Determinar la carpeta según el tipo
-                string path = this.helperPath.MapPath(uniqueFileName, Folders.contents);
-
-                // Guardar el archivo
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await ArchivoContenido.CopyToAsync(stream);
-                }
-
-                // Asignar la URL del contenido
-                contenido.URLContenido = uniqueFileName;
+                await ArchivoContenido.CopyToAsync(stream);
             }
+
+            // Asignar la URL del contenido
+            contenido.URLContenido = uniqueFileName;
 
             Contenido nuevoContenido = await this.repo.CreateContenidoAsync
                 (contenido.IdTema, contenido.Titulo, contenido.Tipo, contenido.URLContenido
@@ -136,7 +133,7 @@ namespace MyVirtualAcademy.Controllers
         }
 
 
-        [AuthorizeUsuarios(Policy = "AdminOnly")]
+        [AuthorizeUsuarios(Policy = "ProfesorUTutor")]
         public IActionResult GetFormularioContenido()
         {
             return PartialView("_FormularioContenido", new Contenido());
@@ -275,10 +272,16 @@ namespace MyVirtualAcademy.Controllers
             {
                 var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var tarea = await this.repo.ObtenerTareaDetalleAsync(id, usuarioId);
-        
+
                 if (tarea == null)
                     return NotFound();
-            
+
+                // Si el usuario es profesor o administrador, carga las entregas
+                if (User.IsInRole("Profesor") || User.IsInRole("Administrador"))
+                {
+                    tarea.Entregas = await this.repo.ObtenerEntregasTareaAsync(id);
+                }
+
                 return View(tarea);
             }
 
@@ -335,6 +338,31 @@ namespace MyVirtualAcademy.Controllers
                     TempData["Error"] = "Ha ocurrido un error al procesar tu entrega. Inténtalo de nuevo.";
 
                 return RedirectToAction("DetalleTarea", new { id });
+            }
+
+            [HttpPost]
+            public async Task<IActionResult> Calificar(int idEntrega, int idEstudiante, int idContenido, decimal calificacion, string comentarios)
+            {
+                // Verificar si el usuario es profesor o admin
+                if (!User.IsInRole("Profesor") && !User.IsInRole("Administrador"))
+                    return Forbid();
+
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    
+                // Llamar al repositorio para guardar la calificación
+                await this.repo.GuardarCalificacionAsync(
+                    idEntrega, 
+                    idEstudiante, 
+                    idContenido, 
+                    calificacion, 
+                    comentarios, 
+                    usuarioId
+                );
+
+                TempData["Mensaje"] = "La calificación se ha guardado correctamente.";
+                TempData["TipoMensaje"] = "success";
+
+                return RedirectToAction("DetalleTarea", new { id = idContenido });
             }
 
             public async Task<IActionResult> DetalleRecurso(int id, string tipo)
